@@ -108,26 +108,26 @@ impl Solution {
         }
         Solution { placements }
     }
-}
 
-pub fn parse_solution(s: Vec<&str>) -> Solution {
-    let mut solution = Solution {
-        placements: Vec::new(),
-    };
-    for row in 0..s.len() {
-        for column in 0..s[row].len() {
-            let c = s[row].as_bytes()[column];
-            // Skip cells with background objects.
-            if [b'.', b'g', b'x'].contains(&c) {
-                continue;
+    pub fn parse(s: Vec<&str>) -> Solution {
+        let mut solution = Solution {
+            placements: Vec::new(),
+        };
+        for row in 0..s.len() {
+            for column in 0..s[row].len() {
+                let c = s[row].as_bytes()[column];
+                // Skip cells with background objects.
+                if [b'.', b'g', b'x'].contains(&c) {
+                    continue;
+                }
+                solution.placements.push(Placement {
+                    building: BuildingType::from_char(c),
+                    position: Some(Position { row, column }),
+                })
             }
-            solution.placements.push(Placement {
-                building: BuildingType::from_char(c),
-                position: Some(Position { row, column }),
-            })
         }
+        solution
     }
-    solution
 }
 
 const DROW: [i32; 4] = [1, 0, -1, 0];
@@ -221,7 +221,7 @@ pub fn first_level() -> (Level, Solution) {
             building_count: HashMap::from([(BuildingType::House, 5), (BuildingType::Trash, 1)]),
             field: field_from_size(3, 3),
         },
-        parse_solution(vec![
+        Solution::parse(vec![
            "1gT", 
            "11g",
            "g11",
@@ -236,7 +236,7 @@ pub fn second_level() -> (Level, Solution) {
             building_count: HashMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 4)]),
             field: field_from_size(3, 3),
         },
-        parse_solution(vec![
+        Solution::parse(vec![
            "H1H", 
            "1g1",
            "H1H",
@@ -253,7 +253,7 @@ pub fn third_level() -> (Level, Solution) {
     level.field[0][0] = CellType::Hole;
     (
         level,
-        parse_solution(vec![
+        Solution::parse(vec![
             "H1H",
             "1g1",
             "H1H",

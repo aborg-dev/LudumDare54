@@ -142,6 +142,7 @@ pub fn update_lever_render(
 
     transform.translation = Vec3::new(-level_width / 2.0, -level_height / 2.0, 0.0);
 
+    // TODO: We can actually update this only if solution changes.
     let solution = &game_state.solution;
     let validation_result = validate_solution(solution, level);
     solution_status_text_query.single_mut().sections[0].value = format!("{}", validation_result);

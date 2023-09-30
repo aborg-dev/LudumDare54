@@ -3,8 +3,11 @@ use bevy::window::{close_on_esc, WindowMode};
 
 use crate::level::validate_solution;
 
+use self::input::GameInputPlugin;
+
 mod level;
 mod render;
+mod input;
 
 #[derive(Resource)]
 pub struct GameState {
@@ -42,5 +45,6 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, close_on_esc)
         .add_systems(Update, render::render_level_and_solution)
+        .add_plugins(GameInputPlugin)
         .run();
 }

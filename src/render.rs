@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy::math::Vec2;
 use std::default::Default;
 use bevy::sprite::Anchor;
+use bevy::ui::RelativeCursorPosition;
 use crate::GameState;
 use crate::input::SelectedBuilding;
 use crate::level::{BuildingType, CellType, validate_solution, Solution, Level};
@@ -25,13 +26,16 @@ impl Default for LevelRender {
 pub struct SolutionStatusText;
 
 #[derive(Component)]
-pub struct AvailableBuildingsText;
+pub struct AvailableBuildingsText {
+    building_index: usize,
+}
 
 pub fn create_level_render(
     mut commands: Commands,
     game_state: Res<GameState>,
     mut level_render_query: Query<(Entity, &mut LevelRender)>,
     window_query: Query<&Window>,
+    server: Res<AssetServer>,
 ) {
     let (level_render_entity, mut level_render) = level_render_query.single_mut();
     let level = &game_state.level;
@@ -96,26 +100,59 @@ pub fn create_level_render(
     }
 
     let messages = build_available_buildings_texts(&game_state.level, &game_state.solution);
-    commands.spawn((
-        TextBundle::from_sections(messages.iter().map(|message| {
-            TextSection::new(
-                message,
-                TextStyle {
-                    font_size: 24.0,
-                    color: Color::WHITE,
-                    ..Default::default()
-                })
-        }))
-        .with_style(Style {
-            align_self: AlignSelf::FlexEnd,
-            position_type: PositionType::Absolute,
-            top: Val::Px(20.0),
-            left: Val::Px(20.0),
-            width: Val::Px(600.0),
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.),
+                height: Val::Percent(20.),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                flex_direction: FlexDirection::Row,
+                ..default()
+            },
             ..default()
-        }),
-        AvailableBuildingsText,
-    ));
+        })
+        .with_children(|parent| {
+            for (index, (building, message)) in messages.iter().enumerate() {
+                parent.spawn(NodeBundle {
+                    style: Style {
+                        width: Val::Percent(10.),
+                        height: Val::Percent(100.),
+                        margin: UiRect::right(Val::Px(50.)),
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        flex_direction: FlexDirection::Column,
+                        ..default()
+                    },
+                    ..default()
+                }).with_children(|parent| {
+                    parent
+                        .spawn(ImageBundle {
+                            image: UiImage {
+                                texture: server.load(building.get_asset_name()), flip_x: false, flip_y: false
+                            },
+                            style: Style {
+                                width: Val::Px(100.),
+                                height: Val::Px(100.),
+                                margin: UiRect::top(Val::Px(20.)),
+                                ..default()
+                            },
+                            ..default()
+                        })
+                        .insert(RelativeCursorPosition::default());
+
+                    parent.spawn((
+                        TextBundle::from_section(
+                            message.clone(),
+                            TextStyle {
+                                font_size: 24.0,
+                                color: Color::WHITE,
+                                ..Default::default()
+                            }),
+                        AvailableBuildingsText { building_index: index }));
+                });
+            }
+        });
 
     commands.spawn((
         TextBundle::from_section(
@@ -174,12 +211,12 @@ pub fn update_lever_render(
     solution_status_text_query.single_mut().sections[0].value = format!("{}", validation_result);
 }
 
-pub fn build_available_buildings_texts(level: &Level, solution: &Solution) -> Vec<String> {
+pub fn build_available_buildings_texts(level: &Level, solution: &Solution) -> Vec<(BuildingType, String)> {
     let placed_building_count = solution.building_count();
     let mut messages = Vec::new();
     for (index, (building, total_count)) in level.building_count.iter().enumerate() {
         let placed_count = placed_building_count.get(&building).cloned().unwrap_or_default();
-        messages.push(format!("{}: {building:?}: {placed_count}/{total_count}", index + 1));
+        messages.push((*building, format!("{}: {building:?}: {placed_count}/{total_count}", index + 1)));
     }
     messages
 }
@@ -188,17 +225,15 @@ pub fn build_available_buildings_texts(level: &Level, solution: &Solution) -> Ve
 pub fn update_available_buildings_text(
     game_state: Res<GameState>,
     selected_building: Res<SelectedBuilding>,
-    mut available_buildings_text: Query<&mut Text, With<AvailableBuildingsText>>,
+    mut available_buildings_text: Query<(&mut Text, &AvailableBuildingsText)>,
 ) {
     let messages = build_available_buildings_texts(&game_state.level, &game_state.solution);
-    let mut text_bundle = available_buildings_text.single_mut();
-    for (index, message) in messages.iter().enumerate() {
-        text_bundle.sections[index].value = format!("{message}\n");
-        text_bundle.sections[index].style.color = Color::WHITE;
-    }
-    if let Some(number) = selected_building.number {
-        if number < messages.len() {
-            text_bundle.sections[number].style.color = Color::RED;
+    for (mut text, available_building_text_component) in available_buildings_text.iter_mut() {
+        text.sections[0].value = messages[available_building_text_component.building_index].1.clone();
+        if selected_building.number == Some(available_building_text_component.building_index) {
+            text.sections[0].style.color = Color::RED;
+        } else {
+            text.sections[0].style.color = Color::WHITE;
         }
     }
 }

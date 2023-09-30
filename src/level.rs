@@ -25,6 +25,15 @@ impl BuildingType {
             _ => panic!("Unknown building type: {}", c),
         }
     }
+
+    pub fn get_asset_name(&self) -> &str {
+        match self {
+            BuildingType::House => "house.png",
+            BuildingType::Trash => "trashbin.png",
+            // TODO: Add dedicated hermit image.
+            BuildingType::Hermit => "hermit.png",
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]

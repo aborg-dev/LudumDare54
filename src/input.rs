@@ -1,9 +1,8 @@
-use bevy::input::common_conditions::input_just_pressed;
-use bevy::prelude::{
-    App, Input, IntoSystemConfigs, KeyCode, MouseButton, Plugin, Query, Res, ResMut, Resource,
-    Update, With,
-};
+use bevy::math::*;
+use bevy::prelude::*;
 use bevy::window::{PrimaryWindow, Window};
+use crate::{GameState, render};
+use crate::level::{BuildingType, Level, Placement, Position};
 
 pub struct GameInputPlugin;
 
@@ -15,15 +14,8 @@ pub struct SelectedBuilding {
 impl Plugin for GameInputPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<SelectedBuilding>()
-            .add_systems(Update, (keyboard_input,))
-            .add_systems(
-                Update,
-                (handle_left_click).run_if(input_just_pressed(MouseButton::Left)),
-            )
-            .add_systems(
-                Update,
-                (handle_right_click).run_if(input_just_pressed(MouseButton::Right)),
-            );
+            .add_systems(Update, keyboard_input)
+            .add_systems(Update, mouse_input);
     }
 }
 
@@ -42,20 +34,57 @@ fn keyboard_input(keys: Res<Input<KeyCode>>, mut selected_building: ResMut<Selec
     }
 }
 
-fn handle_left_click(q_windows: Query<&Window, With<PrimaryWindow>>) {
-    // Games typically only have one window (the primary window)
-    if let Some(position) = q_windows.single().cursor_position() {
-        println!("Cursor is inside the primary window, at {:?}", position);
-    } else {
-        println!("Cursor is not in the game window.");
-    }
-}
+fn mouse_input(
+    mouse: Res<Input<MouseButton>>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    level_render_query: Query<(&Transform), With<render::LevelRender>>,
+    camera_query: Query<(&Camera, &GlobalTransform)>,
+    mut game_state: ResMut<GameState>,
+    selected_building: Res<SelectedBuilding>,
+) {
+    let (level_transform) = level_render_query.single();
+    let (camera, camera_global_transform) = camera_query.single();
+    let window = window_query.single();
+    let (rows, columns) = (game_state.level.rows(), game_state.level.columns());
 
-fn handle_right_click(q_windows: Query<&Window, With<PrimaryWindow>>) {
-    // Games typically only have one window (the primary window)
-    if let Some(position) = q_windows.single().cursor_position() {
-        println!("Cursor is inside the primary window, at {:?}", position);
-    } else {
-        println!("Cursor is not in the game window.");
+    // match selected_building.number {
+    //     Some(type) => type,
+    //     None =>
+    // }
+    let selected_building_type = selected_building.number.map(|n| game_state.level.building_count.keys().nth(n).unwrap().clone());
+
+    let left_just_pressed = mouse.just_pressed(MouseButton::Left);
+    let right_just_pressed = mouse.just_pressed(MouseButton::Right);
+
+    if let Some(p) = window.cursor_position()
+        .and_then(|cursor| camera.viewport_to_world_2d(camera_global_transform, cursor))
+        .map(|cursor| (cursor - level_transform.translation.xy()) / render::CELL_SIZE)
+    {
+        let lower_bound = Vec2::new(0.0, 0.0);
+        let upper_bound = Vec2::new(columns as f32, rows as f32);
+        if p.cmpge(lower_bound).all() && p.cmplt(upper_bound).all() {
+            let position = Position{row: p.y as usize, column: p.x as usize};
+            let r = position.row;
+            let c = position.column;
+
+            if left_just_pressed {
+                if let Some(building_type) = selected_building_type {
+                    if let Some(&mut ref mut placement) = game_state.solution.placements.iter_mut().find(|x| x.building == building_type && x.position.is_none()) {
+                        placement.position = Some(position.clone());
+                    }
+                }
+                println!("LEFT level_position {r}:{c}");
+            }
+
+            if right_just_pressed {
+                for placement in &mut game_state.solution.placements.iter_mut() {
+                    if placement.position.is_some() && placement.position.unwrap() == position {
+                        placement.position = None;
+                        break;
+                    }
+                }
+                println!("RIGHT level_position {r}:{c}");
+            }
+        }
     }
 }

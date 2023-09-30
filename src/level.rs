@@ -87,7 +87,7 @@ pub fn field_from_size(rows: usize, columns: usize) -> Vec<Vec<CellType>> {
     vec![vec![CellType::Grass; columns]; rows]
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Position {
     pub row: usize,
     pub column: usize,

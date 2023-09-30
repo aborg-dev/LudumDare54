@@ -5,12 +5,15 @@ use bevy::sprite::Anchor;
 use bevy::ui::RelativeCursorPosition;
 use crate::GameState;
 use crate::input::SelectedBuilding;
-use crate::level::{BuildingType, CellType, validate_solution, Solution, Level};
+use crate::level::{BuildingType, CellType, validate_solution, Solution, Level, Position};
+
+pub const CELL_SIZE: f32 = 100.0;
 
 #[derive(Component)]
 pub struct LevelRender {
     need_update: bool,
     field: Vec<Vec<Entity>>,
+    placements: Vec<Entity>,
 }
 
 impl Default for LevelRender {
@@ -18,6 +21,7 @@ impl Default for LevelRender {
         Self {
             need_update: false,
             field: vec![],
+            placements: vec![],
         }
     }
 }
@@ -47,8 +51,7 @@ pub fn create_level_render(
     // let (center_x, center_y) = (window_width / 2.0, window_height / 2.0);
 
     let (rows, columns) = (level.rows(), level.columns());
-    let cell_size = 100.0;
-    // let (level_width, level_height) = (columns as f32 * cell_size, rows as f32 * cell_size);
+    // let (level_width, level_height) = (columns as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
 
     level_render.field.resize(rows, vec![]);
     for r in 0..rows {
@@ -57,13 +60,13 @@ pub fn create_level_render(
             let id = commands.spawn(SpriteBundle {
                 sprite: Sprite {
                     color,
-                    custom_size: Some(Vec2::new(cell_size, cell_size)),
+                    custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
                     anchor: Anchor::BottomLeft,
                     ..Default::default()
                 },
                 transform: Transform::from_xyz(
-                    c as f32 * cell_size,
-                    r as f32 * cell_size,
+                    c as f32 * CELL_SIZE,
+                    r as f32 * CELL_SIZE,
                     0.0,
                 ),
                 ..Default::default()
@@ -79,24 +82,28 @@ pub fn create_level_render(
             BuildingType::Trash => Color::BLACK,
             BuildingType::Hermit => Color::CYAN,
         };
-        if let Some(p) = &placement.position {
-            let (r, c) = (p.row, p.column);
-            let id = commands.spawn(SpriteBundle {
-                sprite: Sprite {
-                    color,
-                    custom_size: Some(Vec2::new(cell_size, cell_size)),
-                    anchor: Anchor::BottomLeft,
-                    ..Default::default()
-                },
-                transform: Transform::from_xyz(
-                    c as f32 * cell_size,
-                    r as f32 * cell_size,
-                    0.0,
-                ),
+
+        let position = placement.position.unwrap_or(Position{row: 0, column: 0});
+        let visible = placement.position.is_some();
+
+        let (r, c) = (position.row, position.column);
+        let id = commands.spawn(SpriteBundle {
+            sprite: Sprite {
+                color,
+                custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
+                anchor: Anchor::BottomLeft,
                 ..Default::default()
-            }).id();
-            commands.entity(level_render_entity).add_child(id);
-        }
+            },
+            transform: Transform::from_xyz(
+                c as f32 * CELL_SIZE,
+                r as f32 * CELL_SIZE,
+                0.0,
+            ),
+            visibility: if visible {Visibility::Inherited} else {Visibility::Hidden},
+            ..Default::default()
+        }).id();
+        commands.entity(level_render_entity).add_child(id);
+        level_render.placements.push(id);
     }
 
     let messages = build_available_buildings_texts(&game_state.level, &game_state.solution);
@@ -188,6 +195,7 @@ pub fn update_lever_render(
     mut commands: Commands,
     game_state: Res<GameState>,
     mut level_render_query: Query<(Entity, &LevelRender, &mut Transform)>,
+
     window_query: Query<&Window>,
     mut solution_status_text_query: Query<&mut Text, With<SolutionStatusText>>,
 ) {
@@ -200,8 +208,7 @@ pub fn update_lever_render(
     // let (center_x, center_y) = (window_width / 2.0, window_height / 2.0);
 
     let (rows, columns) = (level.rows(), level.columns());
-    let cell_size = 100.0;
-    let (level_width, level_height) = (columns as f32 * cell_size, rows as f32 * cell_size);
+    let (level_width, level_height) = (columns as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
 
     transform.translation = Vec3::new(-level_width / 2.0, -level_height / 2.0, 0.0);
 

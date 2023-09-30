@@ -75,17 +75,17 @@ pub fn field_from_size(rows: usize, columns: usize) -> Vec<Vec<CellType>> {
 }
 
 pub struct Position {
-    row: usize,
-    column: usize,
+    pub row: usize,
+    pub column: usize,
 }
 
 pub struct Placement {
-    building: BuildingType,
-    position: Option<Position>,
+    pub building: BuildingType,
+    pub position: Option<Position>,
 }
 
 pub struct Solution {
-    placements: Vec<Placement>,
+    pub placements: Vec<Placement>,
 }
 
 impl Solution {

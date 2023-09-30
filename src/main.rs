@@ -9,12 +9,14 @@ mod render;
 #[derive(Resource)]
 pub struct GameState {
     level: level::Level,
+    solution: level::Solution,
 }
 
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn((render::LevelRender::default(), SpatialBundle::default()));
-    commands.insert_resource(GameState{level: level::third_level().0});
+    let (level, solution) = level::third_level();
+    commands.insert_resource(GameState{level, solution});
 }
 
 fn main() {
@@ -39,6 +41,6 @@ fn main() {
         }))
         .add_systems(Startup, setup)
         .add_systems(Update, close_on_esc)
-        .add_systems(Update, render::render_level)
+        .add_systems(Update, render::render_level_and_solution)
         .run();
 }

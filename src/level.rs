@@ -247,14 +247,14 @@ pub fn second_level() -> (Level, Solution) {
 #[rustfmt::skip]
 pub fn third_level() -> (Level, Solution) {
     let mut level = Level {
-        building_count: HashMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 4)]),
+        building_count: HashMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 3)]),
         field: field_from_size(3, 3),
     };
     level.field[0][0] = CellType::Hole;
     (
         level,
         Solution::parse(vec![
-            "H1H",
+            "x1H",
             "1g1",
             "H1H",
         ]),

@@ -8,8 +8,8 @@ use bevy::window::{PrimaryWindow, Window};
 pub struct GameInputPlugin;
 
 #[derive(Resource, Default)]
-struct SelectedBuilding {
-    number: Option<usize>,
+pub struct SelectedBuilding {
+    pub number: Option<usize>,
 }
 
 impl Plugin for GameInputPlugin {

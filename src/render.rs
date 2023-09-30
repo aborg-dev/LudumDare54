@@ -3,7 +3,8 @@ use bevy::math::Vec2;
 use std::default::Default;
 use bevy::sprite::Anchor;
 use crate::GameState;
-use crate::level::{BuildingType, CellType, validate_solution};
+use crate::input::SelectedBuilding;
+use crate::level::{BuildingType, CellType, validate_solution, Solution, Level};
 
 #[derive(Component)]
 pub struct LevelRender {
@@ -94,15 +95,17 @@ pub fn create_level_render(
         }
     }
 
+    let messages = build_available_buildings_texts(&game_state.level, &game_state.solution);
     commands.spawn((
-        TextBundle::from_section(
-            "Available buildings:",
-            TextStyle {
-                font_size: 24.0,
-                color: Color::WHITE,
-                ..Default::default()
-            },
-        )
+        TextBundle::from_sections(messages.iter().map(|message| {
+            TextSection::new(
+                message,
+                TextStyle {
+                    font_size: 24.0,
+                    color: Color::WHITE,
+                    ..Default::default()
+                })
+        }))
         .with_style(Style {
             align_self: AlignSelf::FlexEnd,
             position_type: PositionType::Absolute,
@@ -171,18 +174,31 @@ pub fn update_lever_render(
     solution_status_text_query.single_mut().sections[0].value = format!("{}", validation_result);
 }
 
-// TODO: We can actually update this only if solution changes.
-pub fn update_available_buildings_text(
-    game_state: Res<GameState>,
-    mut available_buildings_text: Query<&mut Text, With<AvailableBuildingsText>>,
-) {
-    let level = &game_state.level;
-    let placed_building_count = game_state.solution.building_count();
+pub fn build_available_buildings_texts(level: &Level, solution: &Solution) -> Vec<String> {
+    let placed_building_count = solution.building_count();
     let mut messages = Vec::new();
-    for (index, (building, total_count)) in game_state.level.building_count.iter().enumerate() {
+    for (index, (building, total_count)) in level.building_count.iter().enumerate() {
         let placed_count = placed_building_count.get(&building).cloned().unwrap_or_default();
         messages.push(format!("{}: {building:?}: {placed_count}/{total_count}", index + 1));
     }
-    
-    available_buildings_text.single_mut().sections[0].value = format!("{}", messages.join("\n"));
+    messages
+}
+
+// TODO: We can actually update this only if solution changes.
+pub fn update_available_buildings_text(
+    game_state: Res<GameState>,
+    selected_building: Res<SelectedBuilding>,
+    mut available_buildings_text: Query<&mut Text, With<AvailableBuildingsText>>,
+) {
+    let messages = build_available_buildings_texts(&game_state.level, &game_state.solution);
+    let mut text_bundle = available_buildings_text.single_mut();
+    for (index, message) in messages.iter().enumerate() {
+        text_bundle.sections[index].value = format!("{message}\n");
+        text_bundle.sections[index].style.color = Color::WHITE;
+    }
+    if let Some(number) = selected_building.number {
+        if number < messages.len() {
+            text_bundle.sections[number].style.color = Color::RED;
+        }
+    }
 }

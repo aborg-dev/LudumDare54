@@ -79,15 +79,10 @@ pub fn create_level_render(
     }
 
     for placement in solution.placements.iter() {
-        let color = match placement.building {
-            BuildingType::House => Color::BEIGE,
-            BuildingType::Trash => Color::BLACK,
-            BuildingType::Hermit => Color::CYAN,
-        };
         let id = commands
             .spawn(SpriteBundle {
+                texture: server.load(placement.building.get_asset_name()),
                 sprite: Sprite {
-                    color,
                     custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
                     anchor: Anchor::BottomLeft,
                     ..Default::default()

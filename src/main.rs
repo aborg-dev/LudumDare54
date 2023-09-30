@@ -9,7 +9,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                title: "bevy".into(),
+                title: "bevy_game".into(),
                 resolution: (300.0, 300.0).into(),
                 mode: WindowMode::Windowed,
                 // Tells WASM to resize the window according to the available canvas.

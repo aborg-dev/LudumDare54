@@ -9,19 +9,19 @@ pub enum BuildingType {
 }
 
 impl BuildingType {
-    pub fn to_char(&self) -> char {
+    pub fn to_char(&self) -> u8 {
         match self {
-            BuildingType::House => '1',
-            BuildingType::Trash => 'T',
-            BuildingType::Hermit => 'H',
+            BuildingType::House => b'1',
+            BuildingType::Trash => b'T',
+            BuildingType::Hermit => b'H',
         }
     }
 
-    pub fn from_char(c: char) -> BuildingType {
+    pub fn from_char(c: u8) -> BuildingType {
         match c {
-            '1' => BuildingType::House,
-            'T' => BuildingType::Trash,
-            'H' => BuildingType::Hermit,
+            b'1' => BuildingType::House,
+            b'T' => BuildingType::Trash,
+            b'H' => BuildingType::Hermit,
             _ => panic!("Unknown building type: {}", c),
         }
     }
@@ -84,6 +84,27 @@ pub struct Solution {
     placements: Vec<Placement>,
 }
 
+pub fn parse_solution(s: Vec<&str>) -> Solution {
+    let mut solution = Solution {
+        placements: Vec::new(),
+    };
+    for row in 0..s.len() {
+        for column in 0..s[row].len() {
+            let c = s[row].as_bytes()[column];
+            // Skip cells with background objects.
+            if [b'.', b'g', b'x'].contains(&c) {
+                continue;
+            }
+            solution.placements.push(Placement {
+                building: BuildingType::from_char(c),
+                row,
+                column,
+            })
+        }
+    }
+    solution
+}
+
 pub fn validate_solution(solution: &Solution, level: &Level) -> bool {
     // Check that we have the right count of each building.
     let mut building_count = HashMap::new();
@@ -96,34 +117,32 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> bool {
     true
 }
 
+#[rustfmt::skip]
 pub fn first_level() -> (Level, Solution) {
     (
         Level {
             building_count: HashMap::from([(BuildingType::House, 5), (BuildingType::Trash, 1)]),
             field: field_from_size(3, 3),
         },
-        Solution {
-            placements: vec![Placement {
-                building: BuildingType::House,
-                row: 0,
-                column: 0,
-            }],
-        },
+        parse_solution(vec![
+           "1gT", 
+           "11g",
+           "g11",
+        ]),
     )
 }
 
+#[rustfmt::skip]
 pub fn second_level() -> (Level, Solution) {
     (
         Level {
             building_count: HashMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 4)]),
             field: field_from_size(3, 3),
         },
-        Solution {
-            placements: vec![Placement {
-                building: BuildingType::House,
-                row: 0,
-                column: 0,
-            }],
-        },
+        parse_solution(vec![
+           "H1H", 
+           "1g1",
+           "H1H",
+        ]),
     )
 }

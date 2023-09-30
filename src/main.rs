@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy::window::WindowMode;
 
+use crate::level::validate_solution;
+
 mod level;
 
 fn setup(mut commands: Commands) {
@@ -9,8 +11,8 @@ fn setup(mut commands: Commands) {
 
 fn main() {
     let levels = vec![level::first_level(), level::second_level()];
-    for (level, _) in levels {
-        println!("{}", level);
+    for (level, solution) in levels {
+        println!("{}: {}", level, validate_solution(&solution, &level));
     }
 
     App::new()

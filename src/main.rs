@@ -62,7 +62,11 @@ fn main() {
         .add_systems(OnExit(AppState::InGame), render::destroy_level_render)
         .add_systems(
             Update,
-            (render::update_lever_render).run_if(in_state(AppState::InGame)),
+            (render::update_level_render).run_if(in_state(AppState::InGame)),
+        )
+        .add_systems(
+            Update,
+            (render::update_placements_render).run_if(in_state(AppState::InGame)),
         )
         .add_systems(
             Update,

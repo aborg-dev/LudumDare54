@@ -84,11 +84,6 @@ pub fn create_level_render(
             BuildingType::Trash => Color::BLACK,
             BuildingType::Hermit => Color::CYAN,
         };
-
-        let position = placement.position.unwrap_or(Position { row: 0, column: 0 });
-        let visible = placement.position.is_some();
-
-        let (r, c) = (position.row, position.column);
         let id = commands
             .spawn(SpriteBundle {
                 sprite: Sprite {
@@ -97,12 +92,7 @@ pub fn create_level_render(
                     anchor: Anchor::BottomLeft,
                     ..Default::default()
                 },
-                transform: Transform::from_xyz(c as f32 * CELL_SIZE, r as f32 * CELL_SIZE, 0.0),
-                visibility: if visible {
-                    Visibility::Inherited
-                } else {
-                    Visibility::Hidden
-                },
+                visibility: Visibility::Hidden,
                 ..Default::default()
             })
             .id();
@@ -203,7 +193,7 @@ pub fn destroy_level_render(
     commands.entity(level_render_entity).clear_children();
 }
 
-pub fn update_lever_render(
+pub fn update_level_render(
     mut commands: Commands,
     game_state: Res<GameState>,
     mut level_render_query: Query<(Entity, &LevelRender, &mut Transform)>,
@@ -228,6 +218,30 @@ pub fn update_lever_render(
     let solution = &game_state.solution;
     let validation_result = validate_solution(solution, level);
     solution_status_text_query.single_mut().sections[0].value = format!("{}", validation_result);
+}
+
+pub fn update_placements_render(
+    mut commands: Commands,
+    game_state: Res<GameState>,
+    level_render_query: Query<(&LevelRender)>,
+    mut sprites_query: Query<(&mut Transform, &mut Visibility)>,
+) {
+    let level_render = level_render_query.single();
+
+    for i in 0..game_state.solution.placements.len() {
+        let placement = &game_state.solution.placements[i];
+        let id = level_render.placements[i];
+        if let Ok((mut transform, mut visibility)) = sprites_query.get_mut(id) {
+            let position = placement.position.unwrap_or(Position{row: 0, column: 0});
+            let visible = placement.position.is_some();
+            *transform = Transform::from_xyz(
+                position.column as f32 * CELL_SIZE,
+                position.row as f32 * CELL_SIZE,
+                0.0,
+            );
+            *visibility = if visible {Visibility::Inherited} else {Visibility::Hidden};
+        }
+    }
 }
 
 pub fn build_available_buildings_texts(

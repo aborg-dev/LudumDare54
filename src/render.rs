@@ -3,7 +3,7 @@ use bevy::math::Vec2;
 use std::default::Default;
 use bevy::sprite::Anchor;
 use crate::GameState;
-use crate::level::{BuildingType, CellType};
+use crate::level::{BuildingType, CellType, validate_solution};
 
 #[derive(Component)]
 pub struct LevelRender {
@@ -19,6 +19,9 @@ impl Default for LevelRender {
         }
     }
 }
+
+#[derive(Component)]
+pub struct SolutionStatusText;
 
 pub fn create_level_render(
     mut commands: Commands,
@@ -87,6 +90,26 @@ pub fn create_level_render(
             commands.entity(level_render_entity).add_child(id);
         }
     }
+
+    commands.spawn((
+        TextBundle::from_section(
+            "Solution status:",
+            TextStyle {
+                font_size: 24.0,
+                color: Color::WHITE,
+                ..Default::default()
+            },
+        )
+        .with_style(Style {
+            align_self: AlignSelf::FlexEnd,
+            position_type: PositionType::Absolute,
+            bottom: Val::Px(20.0),
+            left: Val::Px(20.0),
+            width: Val::Px(600.0),
+            ..default()
+        }),
+        SolutionStatusText,
+    ));
 }
 
 pub fn destroy_level_render(
@@ -103,10 +126,10 @@ pub fn update_lever_render(
     game_state: Res<GameState>,
     mut level_render_query: Query<(Entity, &LevelRender, &mut Transform)>,
     window_query: Query<&Window>,
+    mut solution_status_text_query: Query<&mut Text, With<SolutionStatusText>>,
 ) {
     let (level_render_entity, level_render, mut transform) = level_render_query.single_mut();
     let level = &game_state.level;
-    // let solution = &game_state.solution;
     // let window = window_query.single();
 
     // let window_width = window.resolution.width();
@@ -118,4 +141,8 @@ pub fn update_lever_render(
     let (level_width, level_height) = (columns as f32 * cell_size, rows as f32 * cell_size);
 
     transform.translation = Vec3::new(-level_width / 2.0, -level_height / 2.0, 0.0);
+
+    let solution = &game_state.solution;
+    let validation_result = validate_solution(solution, level);
+    solution_status_text_query.single_mut().sections[0].value = format!("{}", validation_result);
 }

@@ -136,7 +136,9 @@ const DCOL: [i32; 4] = [0, 1, 0, -1];
 #[derive(Debug)]
 enum ViolationType {
     NoGrass,
+    NoEdge,
     NotPlaced,
+    TrashNearHouse,
 }
 
 #[derive(Debug)]
@@ -161,10 +163,15 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
     }
     let building_missing = level.building_count != building_count;
 
-    let mut has_building = vec![vec![false; level.columns()]; level.rows()];
-    for placement in &solution.placements {
+    let mut has_building = vec![vec![None; level.columns()]; level.rows()];
+    for (index, placement) in solution.placements.iter().enumerate() {
         if let Some(position) = &placement.position {
-            has_building[position.row][position.column] = true;
+            has_building[position.row][position.column] = Some(placement.building);
+        } else {
+            placement_violations.push(PlacementViolation {
+                building_index: index,
+                violation: ViolationType::NotPlaced,
+            });
         }
     }
 
@@ -174,10 +181,6 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
             continue;
         }
         if placement.position.is_none() {
-            placement_violations.push(PlacementViolation {
-                building_index: index,
-                violation: ViolationType::NotPlaced,
-            });
             continue;
         }
         let position = placement.position.as_ref().unwrap();
@@ -192,7 +195,7 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
 
             let nrow = nrow as usize;
             let ncol = ncol as usize;
-            if !has_building[nrow][ncol] && level.field[nrow][ncol] == CellType::Grass {
+            if has_building[nrow][ncol].is_none() && level.field[nrow][ncol] == CellType::Grass {
                 found_grass = true;
                 break;
             }
@@ -207,7 +210,74 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
     }
 
     // Check that hermits are on the edges.
+    for (index, placement) in solution.placements.iter().enumerate() {
+        if !matches!(placement.building, BuildingType::Hermit) {
+            continue;
+        }
+        if placement.position.is_none() {
+            continue;
+        }
+        let position = placement.position.as_ref().unwrap();
+
+        let mut found_edge = false;
+        for d in 0..4 {
+            let nrow = position.row as i32 + DROW[d];
+            let ncol = position.column as i32 + DCOL[d];
+            if !level.is_valid(nrow, ncol) {
+                found_edge = true;
+                break;
+            }
+
+            let nrow = nrow as usize;
+            let ncol = ncol as usize;
+            if level.field[nrow][ncol] == CellType::Hole {
+                found_edge = true;
+                break;
+            }
+        }
+
+        if !found_edge {
+            placement_violations.push(PlacementViolation {
+                building_index: index,
+                violation: ViolationType::NoEdge,
+            })
+        }
+    }
+
     // Check that houses don't have trash next to them.
+    for (index, placement) in solution.placements.iter().enumerate() {
+        if !matches!(placement.building, BuildingType::Trash) {
+            continue;
+        }
+        if placement.position.is_none() {
+            continue;
+        }
+        let position = placement.position.as_ref().unwrap();
+
+        let mut found_house = false;
+        for d in 0..4 {
+            let nrow = position.row as i32 + DROW[d];
+            let ncol = position.column as i32 + DCOL[d];
+            if !level.is_valid(nrow, ncol) {
+                continue;
+            }
+
+            let nrow = nrow as usize;
+            let ncol = ncol as usize;
+            if matches!(has_building[nrow][ncol], Some(BuildingType::House)) {
+                found_house = true;
+                break;
+            }
+        }
+
+        if found_house {
+            placement_violations.push(PlacementViolation {
+                building_index: index,
+                violation: ViolationType::TrashNearHouse,
+            })
+        }
+    }
+
     return ValidationResult {
         building_missing,
         placement_violations,

@@ -7,7 +7,7 @@ mod level;
 mod render;
 
 #[derive(Resource)]
-struct GameState {
+pub struct GameState {
     level: level::Level,
 }
 

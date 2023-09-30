@@ -1,11 +1,18 @@
 use bevy::prelude::*;
 use bevy::window::WindowMode;
 
+mod level;
+
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }
 
 fn main() {
+    let levels = vec![level::first_level(), level::second_level()];
+    for level in levels {
+        println!("{}", level);
+    }
+
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {

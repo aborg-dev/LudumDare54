@@ -23,6 +23,9 @@ impl Default for LevelRender {
 #[derive(Component)]
 pub struct SolutionStatusText;
 
+#[derive(Component)]
+pub struct AvailableBuildingsText;
+
 pub fn create_level_render(
     mut commands: Commands,
     game_state: Res<GameState>,
@@ -93,6 +96,26 @@ pub fn create_level_render(
 
     commands.spawn((
         TextBundle::from_section(
+            "Available buildings:",
+            TextStyle {
+                font_size: 24.0,
+                color: Color::WHITE,
+                ..Default::default()
+            },
+        )
+        .with_style(Style {
+            align_self: AlignSelf::FlexEnd,
+            position_type: PositionType::Absolute,
+            top: Val::Px(20.0),
+            left: Val::Px(20.0),
+            width: Val::Px(600.0),
+            ..default()
+        }),
+        AvailableBuildingsText,
+    ));
+
+    commands.spawn((
+        TextBundle::from_section(
             "Solution status:",
             TextStyle {
                 font_size: 24.0,
@@ -146,4 +169,20 @@ pub fn update_lever_render(
     let solution = &game_state.solution;
     let validation_result = validate_solution(solution, level);
     solution_status_text_query.single_mut().sections[0].value = format!("{}", validation_result);
+}
+
+// TODO: We can actually update this only if solution changes.
+pub fn update_available_buildings_text(
+    game_state: Res<GameState>,
+    mut available_buildings_text: Query<&mut Text, With<AvailableBuildingsText>>,
+) {
+    let level = &game_state.level;
+    let placed_building_count = game_state.solution.building_count();
+    let mut messages = Vec::new();
+    for (index, (building, total_count)) in game_state.level.building_count.iter().enumerate() {
+        let placed_count = placed_building_count.get(&building).cloned().unwrap_or_default();
+        messages.push(format!("{}: {building:?}: {placed_count}/{total_count}", index + 1));
+    }
+    
+    available_buildings_text.single_mut().sections[0].value = format!("{}", messages.join("\n"));
 }

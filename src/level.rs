@@ -109,6 +109,18 @@ impl Solution {
         Solution { placements }
     }
 
+    pub fn building_count(&self) -> HashMap<BuildingType, usize> {
+        let mut building_count = HashMap::new();
+        for placement in &self.placements {
+            if placement.position.is_none() {
+                continue;
+            }
+
+            *building_count.entry(placement.building).or_insert(0) += 1;
+        }
+        building_count
+    }
+
     pub fn parse(s: Vec<&str>) -> Solution {
         let mut solution = Solution {
             placements: Vec::new(),
@@ -166,11 +178,7 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
     let mut placement_violations = Vec::new();
 
     // Check that we have the right count of each building.
-    let mut building_count = HashMap::new();
-    for placement in &solution.placements {
-        *building_count.entry(placement.building).or_insert(0) += 1;
-    }
-    let building_missing = level.building_count != building_count;
+    let building_missing = level.building_count != solution.building_count();
 
     let mut has_building = vec![vec![None; level.columns()]; level.rows()];
     for (index, placement) in solution.placements.iter().enumerate() {

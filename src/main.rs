@@ -9,7 +9,7 @@ fn setup(mut commands: Commands) {
 
 fn main() {
     let levels = vec![level::first_level(), level::second_level()];
-    for level in levels {
+    for (level, _) in levels {
         println!("{}", level);
     }
 

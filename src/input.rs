@@ -1,4 +1,4 @@
-use crate::level::{BuildingType, Level, Placement, Position};
+use crate::level::{BuildingType, CellType, Level, Placement, Position};
 use crate::{render, GameState};
 use bevy::math::*;
 use bevy::prelude::*;
@@ -79,7 +79,14 @@ fn mouse_input(
             let r = position.row;
             let c = position.column;
 
-            if left_just_pressed {
+            if left_just_pressed
+                && game_state.level.field[r][c] != CellType::Hole
+                && game_state
+                    .solution
+                    .placements
+                    .iter()
+                    .all(|x| !x.position.is_some_and(|x| x == position))
+            {
                 if let Some(building_type) = selected_building_type {
                     if let Some(&mut ref mut placement) = game_state
                         .solution
@@ -90,7 +97,6 @@ fn mouse_input(
                         placement.position = Some(position.clone());
                     }
                 }
-                println!("LEFT level_position {r}:{c}");
             }
 
             if right_just_pressed {
@@ -100,7 +106,6 @@ fn mouse_input(
                         break;
                     }
                 }
-                println!("RIGHT level_position {r}:{c}");
             }
         }
     }

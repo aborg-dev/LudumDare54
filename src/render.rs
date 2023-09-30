@@ -227,14 +227,18 @@ pub fn update_placements_render(
         let placement = &game_state.solution.placements[i];
         let id = level_render.placements[i];
         if let Ok((mut transform, mut visibility)) = sprites_query.get_mut(id) {
-            let position = placement.position.unwrap_or(Position{row: 0, column: 0});
+            let position = placement.position.unwrap_or(Position { row: 0, column: 0 });
             let visible = placement.position.is_some();
             *transform = Transform::from_xyz(
                 position.column as f32 * CELL_SIZE,
                 position.row as f32 * CELL_SIZE,
                 0.0,
             );
-            *visibility = if visible {Visibility::Inherited} else {Visibility::Hidden};
+            *visibility = if visible {
+                Visibility::Inherited
+            } else {
+                Visibility::Hidden
+            };
         }
     }
 }

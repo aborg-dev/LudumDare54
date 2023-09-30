@@ -56,6 +56,10 @@ impl Level {
     pub fn columns(&self) -> usize {
         self.field[0].len()
     }
+
+    pub fn is_valid(&self, row: i32, col: i32) -> bool {
+        row >= 0 && row < self.rows() as i32 && col >= 0 && col < self.columns() as i32
+    }
 }
 
 impl fmt::Display for Level {
@@ -74,16 +78,19 @@ pub fn field_from_size(rows: usize, columns: usize) -> Vec<Vec<CellType>> {
     vec![vec![CellType::Grass; columns]; rows]
 }
 
+#[derive(Debug)]
 pub struct Position {
     pub row: usize,
     pub column: usize,
 }
 
+#[derive(Debug)]
 pub struct Placement {
     pub building: BuildingType,
     pub position: Option<Position>,
 }
 
+#[derive(Debug)]
 pub struct Solution {
     pub placements: Vec<Placement>,
 }
@@ -124,7 +131,7 @@ pub fn parse_solution(s: Vec<&str>) -> Solution {
 }
 
 const DROW: [i32; 4] = [1, 0, -1, 0];
-const DCOL: [i32; 4] = [1, 0, -1, 0];
+const DCOL: [i32; 4] = [0, 1, 0, -1];
 
 #[derive(Debug)]
 enum ViolationType {
@@ -154,8 +161,18 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
     }
     let building_missing = level.building_count != building_count;
 
+    let mut has_building = vec![vec![false; level.columns()]; level.rows()];
+    for placement in &solution.placements {
+        if let Some(position) = &placement.position {
+            has_building[position.row][position.column] = true;
+        }
+    }
+
     // Check that houses have grass nearby.
     for (index, placement) in solution.placements.iter().enumerate() {
+        if !matches!(placement.building, BuildingType::House) {
+            continue;
+        }
         if placement.position.is_none() {
             placement_violations.push(PlacementViolation {
                 building_index: index,
@@ -165,33 +182,27 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
         }
         let position = placement.position.as_ref().unwrap();
 
-        if matches!(placement.building, BuildingType::House) {
-            let mut found_grass = false;
-            for d in 0..4 {
-                let nrow = position.row as i32 + DROW[d];
-                let ncol = position.column as i32 + DCOL[d];
-                if nrow < 0
-                    || nrow >= level.rows() as i32
-                    || ncol < 0
-                    || ncol >= level.columns() as i32
-                {
-                    continue;
-                }
-
-                let nrow = nrow as usize;
-                let ncol = ncol as usize;
-                if level.field[nrow][ncol] == CellType::Grass {
-                    found_grass = true;
-                    break;
-                }
+        let mut found_grass = false;
+        for d in 0..4 {
+            let nrow = position.row as i32 + DROW[d];
+            let ncol = position.column as i32 + DCOL[d];
+            if !level.is_valid(nrow, ncol) {
+                continue;
             }
 
-            if !found_grass {
-                placement_violations.push(PlacementViolation {
-                    building_index: index,
-                    violation: ViolationType::NoGrass,
-                })
+            let nrow = nrow as usize;
+            let ncol = ncol as usize;
+            if !has_building[nrow][ncol] && level.field[nrow][ncol] == CellType::Grass {
+                found_grass = true;
+                break;
             }
+        }
+
+        if !found_grass {
+            placement_violations.push(PlacementViolation {
+                building_index: index,
+                violation: ViolationType::NoGrass,
+            })
         }
     }
 

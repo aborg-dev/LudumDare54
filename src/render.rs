@@ -57,7 +57,12 @@ pub fn create_level_render(
     for r in 0..rows {
         for c in 0..columns {
             let color = if level.field[r][c] == CellType::Grass {
-                Color::GREEN
+                Color::Rgba {
+                    alpha: 1.0,
+                    blue: 133.0 / 256.0,
+                    green: 242.0 / 256.0,
+                    red: 173.0 / 256.0,
+                }
             } else {
                 Color::NONE
             };

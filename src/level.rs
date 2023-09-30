@@ -74,14 +74,33 @@ pub fn field_from_size(rows: usize, columns: usize) -> Vec<Vec<CellType>> {
     vec![vec![CellType::Grass; columns]; rows]
 }
 
-pub struct Placement {
-    building: BuildingType,
+pub struct Position {
     row: usize,
     column: usize,
 }
 
+pub struct Placement {
+    building: BuildingType,
+    position: Option<Position>,
+}
+
 pub struct Solution {
     placements: Vec<Placement>,
+}
+
+impl Solution {
+    pub fn empty_from_level(level: &Level) -> Solution {
+        let mut placements = Vec::new();
+        for (building, count) in &level.building_count {
+            for _ in 0..*count {
+                placements.push(Placement {
+                    building: *building,
+                    position: None,
+                });
+            }
+        }
+        Solution { placements }
+    }
 }
 
 pub fn parse_solution(s: Vec<&str>) -> Solution {
@@ -97,8 +116,7 @@ pub fn parse_solution(s: Vec<&str>) -> Solution {
             }
             solution.placements.push(Placement {
                 building: BuildingType::from_char(c),
-                row,
-                column,
+                position: Some(Position { row, column }),
             })
         }
     }
@@ -111,6 +129,7 @@ const DCOL: [i32; 4] = [1, 0, -1, 0];
 #[derive(Debug)]
 enum ViolationType {
     NoGrass,
+    NotPlaced,
 }
 
 #[derive(Debug)]
@@ -133,20 +152,24 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
     for placement in &solution.placements {
         *building_count.entry(placement.building).or_insert(0) += 1;
     }
-    if level.building_count != building_count {
-        return ValidationResult {
-            building_missing: true,
-            placement_violations,
-        };
-    }
+    let building_missing = level.building_count != building_count;
 
     // Check that houses have grass nearby.
     for (index, placement) in solution.placements.iter().enumerate() {
+        if placement.position.is_none() {
+            placement_violations.push(PlacementViolation {
+                building_index: index,
+                violation: ViolationType::NotPlaced,
+            });
+            continue;
+        }
+        let position = placement.position.as_ref().unwrap();
+
         if matches!(placement.building, BuildingType::House) {
             let mut found_grass = false;
             for d in 0..4 {
-                let nrow = placement.row as i32 + DROW[d];
-                let ncol = placement.column as i32 + DCOL[d];
+                let nrow = position.row as i32 + DROW[d];
+                let ncol = position.column as i32 + DCOL[d];
                 if nrow < 0
                     || nrow >= level.rows() as i32
                     || ncol < 0
@@ -175,7 +198,7 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
     // Check that hermits are on the edges.
     // Check that houses don't have trash next to them.
     return ValidationResult {
-        building_missing: false,
+        building_missing,
         placement_violations,
     };
 }

@@ -105,16 +105,79 @@ pub fn parse_solution(s: Vec<&str>) -> Solution {
     solution
 }
 
-pub fn validate_solution(solution: &Solution, level: &Level) -> bool {
+const DROW: [i32; 4] = [1, 0, -1, 0];
+const DCOL: [i32; 4] = [1, 0, -1, 0];
+
+#[derive(Debug)]
+enum ViolationType {
+    NoGrass,
+}
+
+#[derive(Debug)]
+pub struct PlacementViolation {
+    building_index: usize,
+    violation: ViolationType,
+}
+
+#[derive(Debug)]
+pub struct ValidationResult {
+    building_missing: bool,
+    placement_violations: Vec<PlacementViolation>,
+}
+
+pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult {
+    let mut placement_violations = Vec::new();
+
     // Check that we have the right count of each building.
     let mut building_count = HashMap::new();
     for placement in &solution.placements {
         *building_count.entry(placement.building).or_insert(0) += 1;
     }
     if level.building_count != building_count {
-        return false;
+        return ValidationResult {
+            building_missing: true,
+            placement_violations,
+        };
     }
-    true
+
+    // Check that houses have grass nearby.
+    for (index, placement) in solution.placements.iter().enumerate() {
+        if matches!(placement.building, BuildingType::House) {
+            let mut found_grass = false;
+            for d in 0..4 {
+                let nrow = placement.row as i32 + DROW[d];
+                let ncol = placement.column as i32 + DCOL[d];
+                if nrow < 0
+                    || nrow >= level.rows() as i32
+                    || ncol < 0
+                    || ncol >= level.columns() as i32
+                {
+                    continue;
+                }
+
+                let nrow = nrow as usize;
+                let ncol = ncol as usize;
+                if level.field[nrow][ncol] == CellType::Grass {
+                    found_grass = true;
+                    break;
+                }
+            }
+
+            if !found_grass {
+                placement_violations.push(PlacementViolation {
+                    building_index: index,
+                    violation: ViolationType::NoGrass,
+                })
+            }
+        }
+    }
+
+    // Check that hermits are on the edges.
+    // Check that houses don't have trash next to them.
+    return ValidationResult {
+        building_missing: false,
+        placement_violations,
+    };
 }
 
 #[rustfmt::skip]

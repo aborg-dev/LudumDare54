@@ -45,7 +45,7 @@ impl CellType {
 #[derive(Debug)]
 pub struct Level {
     pub building_count: HashMap<BuildingType, usize>,
-    field: Vec<Vec<CellType>>,
+    pub field: Vec<Vec<CellType>>,
 }
 
 impl Level {
@@ -206,6 +206,23 @@ pub fn second_level() -> (Level, Solution) {
            "H1H", 
            "1g1",
            "H1H",
+        ]),
+    )
+}
+
+#[rustfmt::skip]
+pub fn third_level() -> (Level, Solution) {
+    let mut level = Level {
+        building_count: HashMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 4)]),
+        field: field_from_size(3, 3),
+    };
+    level.field[0][0] = CellType::Hole;
+    (
+        level,
+        parse_solution(vec![
+            "H1H",
+            "1g1",
+            "H1H",
         ]),
     )
 }

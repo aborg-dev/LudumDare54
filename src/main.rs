@@ -13,8 +13,8 @@ pub struct GameState {
 
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
-    commands.spawn(render::LevelRender::default());
-    commands.insert_resource(GameState{level: level::first_level().0});
+    commands.spawn((render::LevelRender::default(), SpatialBundle::default()));
+    commands.insert_resource(GameState{level: level::third_level().0});
 }
 
 fn main() {

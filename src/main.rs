@@ -15,11 +15,24 @@ pub struct GameState {
     solution: level::Solution,
 }
 
-fn setup(mut commands: Commands) {
+#[derive(Debug, Clone, Eq, PartialEq, Hash, States)]
+enum AppState {
+    InGame,
+    SwitchLevel,
+}
+
+impl Default for AppState {
+    fn default() -> Self {
+        AppState::SwitchLevel
+    }
+}
+
+fn setup(mut commands: Commands, mut app_state: ResMut<NextState<AppState>>) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn((render::LevelRender::default(), SpatialBundle::default()));
     let (level, solution) = level::third_level();
     commands.insert_resource(GameState{level, solution});
+    app_state.set(AppState::InGame);
 }
 
 fn main() {
@@ -42,9 +55,12 @@ fn main() {
             }),
             ..default()
         }))
+        .add_state::<AppState>()
         .add_systems(Startup, setup)
         .add_systems(Update, close_on_esc)
-        .add_systems(Update, render::render_level_and_solution)
+        .add_systems(OnEnter(AppState::InGame), render::create_level_render)
+        .add_systems(OnExit(AppState::InGame), render::destroy_level_render)
+        .add_systems(Update, (render::update_lever_render).run_if(in_state(AppState::InGame)))
         .add_plugins(GameInputPlugin)
         .run();
 }

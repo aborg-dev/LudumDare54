@@ -20,29 +20,24 @@ impl Default for LevelRender {
     }
 }
 
-pub fn render_level_and_solution(
+pub fn create_level_render(
     mut commands: Commands,
     game_state: Res<GameState>,
-    mut level_render_query: Query<(Entity, &mut LevelRender, &mut Transform)>,
+    mut level_render_query: Query<(Entity, &mut LevelRender)>,
     window_query: Query<&Window>,
 ) {
-    let (level_render_entity, mut level_render, mut transform) = level_render_query.single_mut();
+    let (level_render_entity, mut level_render) = level_render_query.single_mut();
     let level = &game_state.level;
     let solution = &game_state.solution;
     let window = window_query.single();
 
-    let window_width = window.resolution.width();
-    let window_height = window.resolution.height();
-    let (center_x, center_y) = (window_width / 2.0, window_height / 2.0);
+    // let window_width = window.resolution.width();
+    // let window_height = window.resolution.height();
+    // let (center_x, center_y) = (window_width / 2.0, window_height / 2.0);
 
     let (rows, columns) = (level.rows(), level.columns());
     let cell_size = 100.0;
-    let (level_width, level_height) = (columns as f32 * cell_size, rows as f32 * cell_size);
-
-    transform.translation = Vec3::new(-level_width / 2.0, -level_height / 2.0, 0.0);
-
-    commands.entity(level_render_entity).despawn_descendants();
-    commands.entity(level_render_entity).clear_children();
+    // let (level_width, level_height) = (columns as f32 * cell_size, rows as f32 * cell_size);
 
     level_render.field.resize(rows, vec![]);
     for r in 0..rows {
@@ -92,4 +87,35 @@ pub fn render_level_and_solution(
             commands.entity(level_render_entity).add_child(id);
         }
     }
+}
+
+pub fn destroy_level_render(
+    mut commands: Commands,
+    level_render_query: Query<(Entity), (With<LevelRender>, With<Transform>)>,
+) {
+    let level_render_entity = level_render_query.single();
+    commands.entity(level_render_entity).despawn_descendants();
+    commands.entity(level_render_entity).clear_children();
+}
+
+pub fn update_lever_render(
+    mut commands: Commands,
+    game_state: Res<GameState>,
+    mut level_render_query: Query<(Entity, &LevelRender, &mut Transform)>,
+    window_query: Query<&Window>,
+) {
+    let (level_render_entity, level_render, mut transform) = level_render_query.single_mut();
+    let level = &game_state.level;
+    // let solution = &game_state.solution;
+    // let window = window_query.single();
+
+    // let window_width = window.resolution.width();
+    // let window_height = window.resolution.height();
+    // let (center_x, center_y) = (window_width / 2.0, window_height / 2.0);
+
+    let (rows, columns) = (level.rows(), level.columns());
+    let cell_size = 100.0;
+    let (level_width, level_height) = (columns as f32 * cell_size, rows as f32 * cell_size);
+
+    transform.translation = Vec3::new(-level_width / 2.0, -level_height / 2.0, 0.0);
 }

@@ -1,12 +1,20 @@
 use bevy::prelude::*;
-use bevy::window::WindowMode;
+use bevy::window::{close_on_esc, WindowMode};
 
 use crate::level::validate_solution;
 
 mod level;
+mod render;
+
+#[derive(Resource)]
+struct GameState {
+    level: level::Level,
+}
 
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
+    commands.spawn(render::LevelRender::default());
+    commands.insert_resource(GameState{level: level::first_level().0});
 }
 
 fn main() {
@@ -30,5 +38,7 @@ fn main() {
             ..default()
         }))
         .add_systems(Startup, setup)
+        .add_systems(Update, close_on_esc)
+        .add_systems(Update, render::render_level)
         .run();
 }

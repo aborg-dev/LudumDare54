@@ -1,8 +1,8 @@
+use crate::level::{BuildingType, Level, Placement, Position};
+use crate::{render, GameState};
 use bevy::math::*;
 use bevy::prelude::*;
 use bevy::window::{PrimaryWindow, Window};
-use crate::{GameState, render};
-use crate::level::{BuildingType, Level, Placement, Position};
 
 pub struct GameInputPlugin;
 
@@ -51,25 +51,42 @@ fn mouse_input(
     //     Some(type) => type,
     //     None =>
     // }
-    let selected_building_type = selected_building.number.map(|n| game_state.level.building_count.keys().nth(n).unwrap().clone());
+    let selected_building_type = selected_building.number.map(|n| {
+        game_state
+            .level
+            .building_count
+            .keys()
+            .nth(n)
+            .unwrap()
+            .clone()
+    });
 
     let left_just_pressed = mouse.just_pressed(MouseButton::Left);
     let right_just_pressed = mouse.just_pressed(MouseButton::Right);
 
-    if let Some(p) = window.cursor_position()
+    if let Some(p) = window
+        .cursor_position()
         .and_then(|cursor| camera.viewport_to_world_2d(camera_global_transform, cursor))
         .map(|cursor| (cursor - level_transform.translation.xy()) / render::CELL_SIZE)
     {
         let lower_bound = Vec2::new(0.0, 0.0);
         let upper_bound = Vec2::new(columns as f32, rows as f32);
         if p.cmpge(lower_bound).all() && p.cmplt(upper_bound).all() {
-            let position = Position{row: p.y as usize, column: p.x as usize};
+            let position = Position {
+                row: p.y as usize,
+                column: p.x as usize,
+            };
             let r = position.row;
             let c = position.column;
 
             if left_just_pressed {
                 if let Some(building_type) = selected_building_type {
-                    if let Some(&mut ref mut placement) = game_state.solution.placements.iter_mut().find(|x| x.building == building_type && x.position.is_none()) {
+                    if let Some(&mut ref mut placement) = game_state
+                        .solution
+                        .placements
+                        .iter_mut()
+                        .find(|x| x.building == building_type && x.position.is_none())
+                    {
                         placement.position = Some(position.clone());
                     }
                 }

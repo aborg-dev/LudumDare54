@@ -5,9 +5,9 @@ use crate::level::validate_solution;
 
 use self::input::GameInputPlugin;
 
+mod input;
 mod level;
 mod render;
-mod input;
 
 #[derive(Resource)]
 pub struct GameState {
@@ -31,7 +31,7 @@ fn setup(mut commands: Commands, mut app_state: ResMut<NextState<AppState>>) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn((render::LevelRender::default(), SpatialBundle::default()));
     let (level, solution) = level::third_level();
-    commands.insert_resource(GameState{level, solution});
+    commands.insert_resource(GameState { level, solution });
     app_state.set(AppState::InGame);
 }
 
@@ -60,8 +60,14 @@ fn main() {
         .add_systems(Update, close_on_esc)
         .add_systems(OnEnter(AppState::InGame), render::create_level_render)
         .add_systems(OnExit(AppState::InGame), render::destroy_level_render)
-        .add_systems(Update, (render::update_lever_render).run_if(in_state(AppState::InGame)))
-        .add_systems(Update, (render::update_available_buildings_text).run_if(in_state(AppState::InGame)))
+        .add_systems(
+            Update,
+            (render::update_lever_render).run_if(in_state(AppState::InGame)),
+        )
+        .add_systems(
+            Update,
+            (render::update_available_buildings_text).run_if(in_state(AppState::InGame)),
+        )
         .add_plugins(GameInputPlugin)
         .run();
 }

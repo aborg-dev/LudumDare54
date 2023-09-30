@@ -177,7 +177,11 @@ pub struct ValidationResult {
 impl fmt::Display for ValidationResult {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         for violation in &self.placement_violations {
-            writeln!(formatter, "{}: {:?}", violation.building_index, violation.violation)?
+            writeln!(
+                formatter,
+                "{}: {:?}",
+                violation.building_index, violation.violation
+            )?
         }
         writeln!(formatter, "Complete: {}", !self.building_missing)
     }

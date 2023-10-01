@@ -100,6 +100,7 @@ fn mouse_input(
                     AudioBundle {
                         source: server.load("place.wav"),
                         settings: PlaybackSettings {
+                            mode: PlaybackMode::Despawn,
                             volume: Volume::new_absolute(0.0),
                             speed: 1.2,
                             ..default()
@@ -123,6 +124,7 @@ fn mouse_input(
                         AudioBundle {
                             source: server.load("remove.wav"),
                             settings: PlaybackSettings {
+                                mode: PlaybackMode::Despawn,
                                 volume: Volume::new_absolute(0.0),
                                 speed: 1.2,
                                 ..default()
@@ -133,17 +135,24 @@ fn mouse_input(
                     ));
                     game_state.hints[r][c] = false;
                 } else if game_state.puzzle.field[r][c] == CellType::Grass {
+                    let source = if game_state.hints[r][c] {
+                        server.load("erase.wav")
+                    } else {
+                        server.load("draw.wav")
+                    };
+
                     commands.spawn((
                         AudioBundle {
-                            source: server.load("hint.wav"),
+                            source,
                             settings: PlaybackSettings {
+                                mode: PlaybackMode::Despawn,
                                 volume: Volume::new_absolute(0.0),
                                 speed: 1.2,
                                 ..default()
                             },
                             ..default()
                         },
-                        VolumeSettings { volume: 0.5 },
+                        VolumeSettings { volume: 0.12 },
                     ));
                     game_state.hints[r][c] ^= true;
                 }

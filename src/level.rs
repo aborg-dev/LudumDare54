@@ -1,5 +1,4 @@
 use core::fmt;
-use std::collections::BTreeMap;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub enum BuildingType {
@@ -68,7 +67,6 @@ impl CellType {
 
 #[derive(Debug)]
 pub struct Puzzle {
-    pub building_count: BTreeMap<BuildingType, usize>,
     pub row_count: Vec<usize>,
     pub col_count: Vec<usize>,
     pub field: Vec<Vec<CellType>>,
@@ -96,7 +94,9 @@ impl fmt::Display for Puzzle {
             }
             writeln!(formatter)?
         }
-        write!(formatter, "{:?}", self.building_count)
+        writeln!(formatter, "Row count: {:?}", self.row_count)?;
+        writeln!(formatter, "Col count: {:?}", self.col_count)?;
+        Ok(())
     }
 }
 
@@ -137,28 +137,16 @@ pub struct Solution {
 
 impl Solution {
     pub fn empty_from_puzzle(puzzle: &Puzzle) -> Solution {
-        let mut placements = Vec::new();
-        for (building, count) in &puzzle.building_count {
-            for _ in 0..*count {
-                placements.push(Placement {
-                    building: *building,
-                    position: None,
-                });
-            }
-        }
+        let placements = Vec::new();
+        // for (building, count) in &puzzle.building_count {
+        //     for _ in 0..*count {
+        //         placements.push(Placement {
+        //             building: *building,
+        //             position: None,
+        //         });
+        //     }
+        // }
         Solution { placements }
-    }
-
-    pub fn building_count(&self) -> BTreeMap<BuildingType, usize> {
-        let mut building_count = BTreeMap::new();
-        for placement in &self.placements {
-            if placement.position.is_none() {
-                continue;
-            }
-
-            *building_count.entry(placement.building).or_insert(0) += 1;
-        }
-        building_count
     }
 
     pub fn parse(s: Vec<&str>) -> Solution {
@@ -200,7 +188,6 @@ pub struct PlacementViolation {
 
 #[derive(Debug)]
 pub struct ValidationResult {
-    building_missing: bool,
     placement_violations: Vec<PlacementViolation>,
 }
 
@@ -213,7 +200,7 @@ impl fmt::Display for ValidationResult {
                 violation.building_index, violation.violation
             )?
         }
-        writeln!(formatter, "Complete: {}", !self.building_missing)
+        Ok(())
     }
 }
 
@@ -221,7 +208,7 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
     let mut placement_violations = Vec::new();
 
     // Check that we have the right count of each building.
-    let building_missing = puzzle.building_count != solution.building_count();
+    // let building_missing = puzzle.building_count != solution.building_count();
 
     let mut has_building = vec![vec![None; puzzle.columns()]; puzzle.rows()];
     for (index, placement) in solution.placements.iter().enumerate() {
@@ -339,7 +326,6 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
     }
 
     ValidationResult {
-        building_missing,
         placement_violations,
     }
 }
@@ -355,7 +341,6 @@ pub fn first_level() -> GameLevel {
     GameLevel {
         name: "two_lakes".into(),
         puzzle: Puzzle {
-            building_count: BTreeMap::new(),
             field: parse_field(vec![
                "....",
                "L.L.",

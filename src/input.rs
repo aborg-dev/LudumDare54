@@ -1,4 +1,4 @@
-use crate::level::{CellType, Position};
+use crate::level::{BuildingType, CellType, Position};
 use crate::{render, GameState};
 use bevy::math::*;
 use bevy::prelude::*;
@@ -47,13 +47,7 @@ fn mouse_input(
     let window = window_query.single();
     let (rows, columns) = (game_state.puzzle.rows(), game_state.puzzle.columns());
 
-    // match selected_building.number {
-    //     Some(type) => type,
-    //     None =>
-    // }
-    let selected_building_type = selected_building
-        .number
-        .map(|n| *game_state.puzzle.building_count.keys().nth(n).unwrap());
+    let selected_building_type = Some(BuildingType::House);
 
     let left_just_pressed = mouse.just_pressed(MouseButton::Left);
     let right_just_pressed = mouse.just_pressed(MouseButton::Right);

@@ -143,7 +143,7 @@ pub enum LineStatus {
 pub struct ValidationResult {
     pub row_status: Vec<LineStatus>,
     pub col_status: Vec<LineStatus>,
-    placement_violations: Vec<PlacementViolation>,
+    pub placement_violations: Vec<PlacementViolation>,
 }
 
 impl fmt::Display for ValidationResult {

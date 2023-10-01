@@ -1,4 +1,4 @@
-use crate::level::{validate_solution, CellType, LineStatus};
+use crate::level::*;
 use crate::GameState;
 use bevy::math::Vec2;
 use bevy::prelude::*;
@@ -23,6 +23,12 @@ pub struct RowBuildingsRequired {
 
 #[derive(Component)]
 pub struct ColBuildingsRequired {
+    col: usize,
+}
+
+#[derive(Component)]
+pub struct IncorrectPlacement {
+    row: usize,
     col: usize,
 }
 
@@ -63,6 +69,18 @@ pub fn create_level_render(
                 .id();
             commands.entity(level_render_entity).add_child(id);
             level_render.field[r].push(id);
+
+            let id = commands.spawn((SpriteBundle {
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
+                    anchor: Anchor::BottomLeft,
+                    ..Default::default()
+                },
+                transform: Transform::from_xyz(c as f32 * CELL_SIZE, r as f32 * CELL_SIZE, 0.1),
+                texture: server.load("cross.png"),
+                ..Default::default()
+            }, IncorrectPlacement { row: r, col: c })).id();
+            commands.entity(level_render_entity).add_child(id);
         }
     }
 
@@ -211,6 +229,29 @@ pub fn update_buildings_required(
         };
         if let Some((mut text, _)) = col_buildings_required_text_query.iter_mut().find(|(_, x)| x.col == c) {
             text.sections[0].style.color = color;
+        }
+    }
+}
+
+pub fn update_incorrect_placements(
+    game_state: Res<GameState>,
+    mut incorrect_placements_query: Query<(&mut Visibility, &IncorrectPlacement)>,
+) {
+    let validation_result = validate_solution(&game_state.solution, &game_state.puzzle);
+    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.columns());
+
+    for r in 0..rows {
+        for c in 0..cols {
+            let (mut visibility, _) = incorrect_placements_query.iter_mut().find(|(_, x)| x.row == r && x.col == c).unwrap();
+            *visibility = Visibility::Hidden;
+
+            let matches_position = |x: &&PlacementViolation| {
+                let placement = &game_state.solution.placements[x.house_index];
+                placement.position == Position{row: r, column: c}
+            };
+            if let Some(x) = validation_result.placement_violations.iter().find(matches_position) {
+                *visibility = Visibility::Inherited;
+            };
         }
     }
 }

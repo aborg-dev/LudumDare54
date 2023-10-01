@@ -69,6 +69,7 @@ fn main() {
                 render::update_level_render,
                 render::update_placements_render,
                 render::update_buildings_required,
+                render::update_incorrect_placements,
                 render::update_solution_status,
             )
                 .run_if(in_state(AppState::InGame)),

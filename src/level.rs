@@ -1,7 +1,7 @@
 use core::fmt;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub enum BuildingType {
     House,  // 1
     Trash,  // T
@@ -54,7 +54,7 @@ impl CellType {
 
 #[derive(Debug)]
 pub struct Level {
-    pub building_count: HashMap<BuildingType, usize>,
+    pub building_count: BTreeMap<BuildingType, usize>,
     pub field: Vec<Vec<CellType>>,
 }
 
@@ -119,8 +119,8 @@ impl Solution {
         Solution { placements }
     }
 
-    pub fn building_count(&self) -> HashMap<BuildingType, usize> {
-        let mut building_count = HashMap::new();
+    pub fn building_count(&self) -> BTreeMap<BuildingType, usize> {
+        let mut building_count = BTreeMap::new();
         for placement in &self.placements {
             if placement.position.is_none() {
                 continue;
@@ -318,7 +318,7 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
 pub fn first_level() -> (Level, Solution) {
     (
         Level {
-            building_count: HashMap::from([(BuildingType::House, 5), (BuildingType::Trash, 1)]),
+            building_count: BTreeMap::from([(BuildingType::House, 5), (BuildingType::Trash, 1)]),
             field: field_from_size(3, 3),
         },
         Solution::parse(vec![
@@ -333,7 +333,7 @@ pub fn first_level() -> (Level, Solution) {
 pub fn second_level() -> (Level, Solution) {
     (
         Level {
-            building_count: HashMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 4)]),
+            building_count: BTreeMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 4)]),
             field: field_from_size(3, 3),
         },
         Solution::parse(vec![
@@ -347,7 +347,7 @@ pub fn second_level() -> (Level, Solution) {
 #[rustfmt::skip]
 pub fn third_level() -> (Level, Solution) {
     let mut level = Level {
-        building_count: HashMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 3)]),
+        building_count: BTreeMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 3)]),
         field: field_from_size(3, 3),
     };
     level.field[0][0] = CellType::Hole;

@@ -2,6 +2,7 @@ use crate::level::*;
 use crate::GameState;
 use bevy::math::Vec2;
 use bevy::prelude::*;
+use bevy::render::texture::DEFAULT_IMAGE_HANDLE;
 use bevy::sprite::Anchor;
 use std::default::Default;
 
@@ -9,7 +10,6 @@ pub const CELL_SIZE: f32 = 100.0;
 
 #[derive(Component, Default)]
 pub struct LevelRender {
-    field: Vec<Vec<Entity>>,
     placements: Vec<Entity>,
 }
 
@@ -40,18 +40,8 @@ pub struct CellHint {
 
 pub fn get_cell_color(cell_type: CellType) -> Color {
     match cell_type {
-        CellType::Grass => Color::Rgba {
-            alpha: 1.0,
-            red: 173.0 / 256.0,
-            green: 242.0 / 256.0,
-            blue: 133.0 / 256.0,
-        },
-        CellType::Tree => Color::Rgba {
-            alpha: 1.0,
-            red: 19.0 / 256.0,
-            green: 82.0 / 256.0,
-            blue: 41.0 / 256.0,
-        },
+        CellType::Grass => Color::NONE,
+        CellType::Tree => Color::WHITE,
         CellType::Lake => Color::Rgba {
             alpha: 1.0,
             red: 105.0 / 256.0,
@@ -67,6 +57,15 @@ pub fn get_cell_color(cell_type: CellType) -> Color {
     }
 }
 
+pub fn get_cell_texture(server: &Res<AssetServer>, cell_type: CellType) -> Handle<Image> {
+    match cell_type {
+        CellType::Grass => DEFAULT_IMAGE_HANDLE.typed(),
+        CellType::Tree => server.load("forest.png"),
+        CellType::Lake => DEFAULT_IMAGE_HANDLE.typed(),
+        CellType::Mountain => DEFAULT_IMAGE_HANDLE.typed(),
+    }
+}
+
 pub fn create_level_render(
     mut commands: Commands,
     game_state: Res<GameState>,
@@ -79,12 +78,26 @@ pub fn create_level_render(
     let (rows, columns) = (puzzle.rows(), puzzle.columns());
     let puzzle_height = rows as f32 * CELL_SIZE;
 
-    level_render.field.resize(rows, vec![]);
     for r in 0..rows {
         for c in 0..columns {
             let color = get_cell_color(puzzle.field[r][c]);
+            let texture = get_cell_texture(&server, puzzle.field[r][c]);
             let tx = c as f32 * CELL_SIZE;
             let ty = puzzle_height - CELL_SIZE - r as f32 * CELL_SIZE;
+
+            let id = commands
+                .spawn(SpriteBundle {
+                    sprite: Sprite {
+                        custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
+                        anchor: Anchor::BottomLeft,
+                        ..Default::default()
+                    },
+                    transform: Transform::from_xyz(tx, ty, -0.1),
+                    texture: server.load("empty.png"),
+                    ..Default::default()
+                })
+                .id();
+            commands.entity(level_render_entity).add_child(id);
 
             let id = commands
                 .spawn(SpriteBundle {
@@ -95,11 +108,11 @@ pub fn create_level_render(
                         ..Default::default()
                     },
                     transform: Transform::from_xyz(tx, ty, 0.0),
+                    texture,
                     ..Default::default()
                 })
                 .id();
             commands.entity(level_render_entity).add_child(id);
-            level_render.field[r].push(id);
 
             let id = commands
                 .spawn((

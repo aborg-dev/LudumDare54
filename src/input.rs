@@ -121,7 +121,7 @@ fn mouse_input(
                         VolumeSettings { volume: 0.5 },
                     ));
                     game_state.hints[r][c] = false;
-                } else {
+                } else if game_state.puzzle.field[r][c] == CellType::Grass {
                     commands.spawn((
                         AudioBundle {
                             source: server.load("hint.wav"),

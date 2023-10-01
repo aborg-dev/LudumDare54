@@ -98,26 +98,6 @@ pub struct Solution {
     pub placements: Vec<Placement>,
 }
 
-impl Solution {
-    pub fn parse(s: Vec<&str>) -> Solution {
-        let mut solution = Solution {
-            placements: Vec::new(),
-        };
-        for (row, line) in s.iter().enumerate() {
-            for (column, c) in line.as_bytes().iter().enumerate() {
-                // Skip cells with background objects.
-                if [b'.', b'g', b'x'].contains(c) {
-                    continue;
-                }
-                solution.placements.push(Placement {
-                    position: Position { row, column },
-                })
-            }
-        }
-        solution
-    }
-}
-
 const DROW: [i32; 4] = [1, 0, -1, 0];
 const DCOL: [i32; 4] = [0, 1, 0, -1];
 
@@ -337,7 +317,6 @@ pub fn count_adjacent_houses(
 pub struct GameLevel {
     pub name: String,
     pub puzzle: Puzzle,
-    pub solution: Solution,
 }
 
 #[rustfmt::skip]
@@ -354,11 +333,6 @@ pub fn first_level() -> GameLevel {
             row_count: vec![2, 1, 2, 1],
             col_count: vec![2, 1, 1, 2],
         },
-        solution: Solution::parse(vec![
-           "1gT", 
-           "11g",
-           "g11",
-        ]),
     }
 }
 

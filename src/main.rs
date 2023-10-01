@@ -1,8 +1,6 @@
 use bevy::prelude::*;
 use bevy::window::{close_on_esc, WindowMode};
 
-use crate::level::validate_solution;
-
 use self::input::GameInputPlugin;
 use self::level::Solution;
 
@@ -36,14 +34,6 @@ fn setup(mut commands: Commands, mut app_state: ResMut<NextState<AppState>>) {
 }
 
 fn main() {
-    for game_level in level::all_levels() {
-        println!(
-            "{}: {:?}",
-            game_level.name,
-            validate_solution(&game_level.solution, &game_level.puzzle)
-        );
-    }
-
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {

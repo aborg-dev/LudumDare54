@@ -1,4 +1,4 @@
-use crate::level::{BuildingType, CellType, Position};
+use crate::level::{CellType, Placement, Position};
 use crate::{render, GameState};
 use bevy::math::*;
 use bevy::prelude::*;
@@ -7,30 +7,30 @@ use bevy::window::{PrimaryWindow, Window};
 pub struct GameInputPlugin;
 
 #[derive(Resource, Default)]
-pub struct SelectedBuilding {
+pub struct SelectedLevel {
     pub number: Option<usize>,
 }
 
 impl Plugin for GameInputPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<SelectedBuilding>()
+        app.init_resource::<SelectedLevel>()
             .add_systems(Update, keyboard_input)
             .add_systems(Update, mouse_input);
     }
 }
 
-fn keyboard_input(keys: Res<Input<KeyCode>>, mut selected_building: ResMut<SelectedBuilding>) {
+fn keyboard_input(keys: Res<Input<KeyCode>>, mut selected_level: ResMut<SelectedLevel>) {
     if keys.just_pressed(KeyCode::Key1) {
-        selected_building.number = Some(0);
+        selected_level.number = Some(0);
     }
     if keys.just_pressed(KeyCode::Key2) {
-        selected_building.number = Some(1);
+        selected_level.number = Some(1);
     }
     if keys.just_pressed(KeyCode::Key3) {
-        selected_building.number = Some(2);
+        selected_level.number = Some(2);
     }
     if keys.just_pressed(KeyCode::Key4) {
-        selected_building.number = Some(3);
+        selected_level.number = Some(3);
     }
 }
 
@@ -40,14 +40,11 @@ fn mouse_input(
     level_render_query: Query<&Transform, With<render::LevelRender>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     mut game_state: ResMut<GameState>,
-    selected_building: Res<SelectedBuilding>,
 ) {
     let level_transform = level_render_query.single();
     let (camera, camera_global_transform) = camera_query.single();
     let window = window_query.single();
     let (rows, columns) = (game_state.puzzle.rows(), game_state.puzzle.columns());
-
-    let selected_building_type = Some(BuildingType::House);
 
     let left_just_pressed = mouse.just_pressed(MouseButton::Left);
     let right_just_pressed = mouse.just_pressed(MouseButton::Right);
@@ -68,31 +65,22 @@ fn mouse_input(
             let c = position.column;
 
             if left_just_pressed
-                && game_state.puzzle.field[r][c] != CellType::Tree
+                && game_state.puzzle.field[r][c] == CellType::Grass
                 && game_state
                     .solution
                     .placements
                     .iter()
                     .all(|x| !(x.position == position))
             {
-                if let Some(building_type) = selected_building_type {
-                    if let Some(&mut ref mut placement) = game_state
-                        .solution
-                        .placements
-                        .iter_mut()
-                        .find(|x| x.building == building_type)
-                    {
-                        placement.position = position;
-                    }
-                }
+                game_state.solution.placements.push(Placement { position });
             }
 
+            // Remove placements at this position.
             if right_just_pressed {
-                for placement in &mut game_state.solution.placements.iter_mut() {
-                    if placement.position == position {
-                        break;
-                    }
-                }
+                game_state
+                    .solution
+                    .placements
+                    .retain(|p| p.position != position);
             }
         }
     }

@@ -1,41 +1,5 @@
 use core::fmt;
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-pub enum BuildingType {
-    House,  // 1
-    Trash,  // T
-    Hermit, // H
-}
-
-impl BuildingType {
-    #[allow(dead_code)]
-    pub fn to_char(self) -> u8 {
-        match self {
-            BuildingType::House => b'1',
-            BuildingType::Trash => b'T',
-            BuildingType::Hermit => b'H',
-        }
-    }
-
-    pub fn from_char(c: u8) -> BuildingType {
-        match c {
-            b'1' => BuildingType::House,
-            b'T' => BuildingType::Trash,
-            b'H' => BuildingType::Hermit,
-            _ => panic!("Unknown building type: {}", c),
-        }
-    }
-
-    pub fn get_asset_name(&self) -> &str {
-        match self {
-            BuildingType::House => "house.png",
-            BuildingType::Trash => "trashbin.png",
-            // TODO: Add dedicated hermit image.
-            BuildingType::Hermit => "hermit.png",
-        }
-    }
-}
-
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum CellType {
     Grass,
@@ -126,29 +90,15 @@ pub struct Position {
 
 #[derive(Debug)]
 pub struct Placement {
-    pub building: BuildingType,
     pub position: Position,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Solution {
     pub placements: Vec<Placement>,
 }
 
 impl Solution {
-    pub fn empty_from_puzzle(puzzle: &Puzzle) -> Solution {
-        let placements = Vec::new();
-        // for (building, count) in &puzzle.building_count {
-        //     for _ in 0..*count {
-        //         placements.push(Placement {
-        //             building: *building,
-        //             position: None,
-        //         });
-        //     }
-        // }
-        Solution { placements }
-    }
-
     pub fn parse(s: Vec<&str>) -> Solution {
         let mut solution = Solution {
             placements: Vec::new(),
@@ -160,7 +110,6 @@ impl Solution {
                     continue;
                 }
                 solution.placements.push(Placement {
-                    building: BuildingType::from_char(*c),
                     position: Position { row, column },
                 })
             }
@@ -207,25 +156,16 @@ impl fmt::Display for ValidationResult {
 pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResult {
     let mut placement_violations = Vec::new();
 
-    // Check that we have the right count of each building.
-    // let building_missing = puzzle.building_count != solution.building_count();
-
-    let mut has_building = vec![vec![None; puzzle.columns()]; puzzle.rows()];
-    for (index, placement) in solution.placements.iter().enumerate() {
-        has_building[placement.position.row][placement.position.column] = Some(placement.building);
-        // } else {
-        //     placement_violations.push(PlacementViolation {
-        //         building_index: index,
-        //         violation: ViolationType::NotPlaced,
-        //     });
-        // }
+    let mut has_building = vec![vec![false; puzzle.columns()]; puzzle.rows()];
+    for placement in &solution.placements {
+        has_building[placement.position.row][placement.position.column] = true;
     }
+
+    // TODO: Check that each row and column is satisfied.
+    // TODO: Check that houses don't have house neighbors.
 
     // Check that houses have grass nearby.
     for (index, placement) in solution.placements.iter().enumerate() {
-        if !matches!(placement.building, BuildingType::House) {
-            continue;
-        }
         let position = placement.position;
 
         let mut found_grass = false;
@@ -238,7 +178,7 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
 
             let nrow = nrow as usize;
             let ncol = ncol as usize;
-            if has_building[nrow][ncol].is_none() && puzzle.field[nrow][ncol] == CellType::Grass {
+            if has_building[nrow][ncol] && puzzle.field[nrow][ncol] == CellType::Grass {
                 found_grass = true;
                 break;
             }
@@ -248,69 +188,6 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
             placement_violations.push(PlacementViolation {
                 building_index: index,
                 violation: ViolationType::NoGrass,
-            })
-        }
-    }
-
-    // Check that hermits are on the edges.
-    for (index, placement) in solution.placements.iter().enumerate() {
-        if !matches!(placement.building, BuildingType::Hermit) {
-            continue;
-        }
-        let position = placement.position;
-
-        let mut found_edge = false;
-        for d in 0..4 {
-            let nrow = position.row as i32 + DROW[d];
-            let ncol = position.column as i32 + DCOL[d];
-            if !puzzle.is_valid(nrow, ncol) {
-                found_edge = true;
-                break;
-            }
-
-            let nrow = nrow as usize;
-            let ncol = ncol as usize;
-            if puzzle.field[nrow][ncol] == CellType::Tree {
-                found_edge = true;
-                break;
-            }
-        }
-
-        if !found_edge {
-            placement_violations.push(PlacementViolation {
-                building_index: index,
-                violation: ViolationType::NoEdge,
-            })
-        }
-    }
-
-    // Check that houses don't have trash next to them.
-    for (index, placement) in solution.placements.iter().enumerate() {
-        if !matches!(placement.building, BuildingType::Trash) {
-            continue;
-        }
-        let position = placement.position;
-
-        let mut found_house = false;
-        for d in 0..4 {
-            let nrow = position.row as i32 + DROW[d];
-            let ncol = position.column as i32 + DCOL[d];
-            if !puzzle.is_valid(nrow, ncol) {
-                continue;
-            }
-
-            let nrow = nrow as usize;
-            let ncol = ncol as usize;
-            if matches!(has_building[nrow][ncol], Some(BuildingType::House)) {
-                found_house = true;
-                break;
-            }
-        }
-
-        if found_house {
-            placement_violations.push(PlacementViolation {
-                building_index: index,
-                violation: ViolationType::TrashNearHouse,
             })
         }
     }

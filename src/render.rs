@@ -1,4 +1,4 @@
-use crate::level::{validate_solution, CellType, Position, Puzzle, Solution};
+use crate::level::{validate_solution, CellType};
 use crate::GameState;
 use bevy::math::Vec2;
 use bevy::prelude::*;
@@ -56,10 +56,10 @@ pub fn create_level_render(
         }
     }
 
-    for placement in game_state.solution.placements.iter() {
+    for _ in 0..100 {
         let id = commands
             .spawn(SpriteBundle {
-                texture: server.load(placement.building.get_asset_name()),
+                texture: server.load("house.png"),
                 sprite: Sprite {
                     custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
                     anchor: Anchor::BottomLeft,
@@ -121,22 +121,20 @@ pub fn update_placements_render(
 ) {
     let level_render = level_render_query.single();
 
-    for i in 0..game_state.solution.placements.len() {
-        let placement = &game_state.solution.placements[i];
+    for i in 0..100 {
         let id = level_render.placements[i];
         if let Ok((mut transform, mut visibility)) = sprites_query.get_mut(id) {
-            let position = placement.position;
-            let visible = true;
-            *transform = Transform::from_xyz(
-                position.column as f32 * CELL_SIZE,
-                position.row as f32 * CELL_SIZE,
-                0.0,
-            );
-            *visibility = if visible {
-                Visibility::Inherited
+            if i < game_state.solution.placements.len() {
+                let placement = &game_state.solution.placements[i];
+                *visibility = Visibility::Inherited;
+                *transform = Transform::from_xyz(
+                    placement.position.column as f32 * CELL_SIZE,
+                    placement.position.row as f32 * CELL_SIZE,
+                    0.0,
+                );
             } else {
-                Visibility::Hidden
-            };
+                *visibility = Visibility::Hidden;
+            }
         }
     }
 }

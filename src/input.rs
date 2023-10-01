@@ -1,4 +1,4 @@
-use crate::level::{BuildingType, CellType, Level, Placement, Position};
+use crate::level::{CellType, Position};
 use crate::{render, GameState};
 use bevy::math::*;
 use bevy::prelude::*;
@@ -37,12 +37,12 @@ fn keyboard_input(keys: Res<Input<KeyCode>>, mut selected_building: ResMut<Selec
 fn mouse_input(
     mouse: Res<Input<MouseButton>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    level_render_query: Query<(&Transform), With<render::LevelRender>>,
+    level_render_query: Query<&Transform, With<render::LevelRender>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     mut game_state: ResMut<GameState>,
     selected_building: Res<SelectedBuilding>,
 ) {
-    let (level_transform) = level_render_query.single();
+    let level_transform = level_render_query.single();
     let (camera, camera_global_transform) = camera_query.single();
     let window = window_query.single();
     let (rows, columns) = (game_state.level.rows(), game_state.level.columns());

@@ -9,6 +9,7 @@ pub enum BuildingType {
 }
 
 impl BuildingType {
+    #[allow(dead_code)]
     pub fn to_char(&self) -> u8 {
         match self {
             BuildingType::House => b'1',

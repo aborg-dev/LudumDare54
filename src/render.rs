@@ -11,7 +11,6 @@ pub const CELL_SIZE: f32 = 100.0;
 
 #[derive(Component)]
 pub struct LevelRender {
-    need_update: bool,
     field: Vec<Vec<Entity>>,
     placements: Vec<Entity>,
 }
@@ -19,7 +18,6 @@ pub struct LevelRender {
 impl Default for LevelRender {
     fn default() -> Self {
         Self {
-            need_update: false,
             field: vec![],
             placements: vec![],
         }
@@ -38,21 +36,12 @@ pub fn create_level_render(
     mut commands: Commands,
     game_state: Res<GameState>,
     mut level_render_query: Query<(Entity, &mut LevelRender)>,
-    window_query: Query<&Window>,
     server: Res<AssetServer>,
 ) {
     let (level_render_entity, mut level_render) = level_render_query.single_mut();
     let level = &game_state.level;
-    let solution = &game_state.solution;
-    let window = window_query.single();
-
-    // let window_width = window.resolution.width();
-    // let window_height = window.resolution.height();
-    // let (center_x, center_y) = (window_width / 2.0, window_height / 2.0);
 
     let (rows, columns) = (level.rows(), level.columns());
-    // let (level_width, level_height) = (columns as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
-
     level_render.field.resize(rows, vec![]);
     for r in 0..rows {
         for c in 0..columns {
@@ -83,7 +72,7 @@ pub fn create_level_render(
         }
     }
 
-    for placement in solution.placements.iter() {
+    for placement in game_state.solution.placements.iter() {
         let id = commands
             .spawn(SpriteBundle {
                 texture: server.load(placement.building.get_asset_name()),
@@ -186,7 +175,7 @@ pub fn create_level_render(
 
 pub fn destroy_level_render(
     mut commands: Commands,
-    level_render_query: Query<(Entity), (With<LevelRender>, With<Transform>)>,
+    level_render_query: Query<Entity, (With<LevelRender>, With<Transform>)>,
 ) {
     let level_render_entity = level_render_query.single();
     commands.entity(level_render_entity).despawn_descendants();
@@ -194,20 +183,13 @@ pub fn destroy_level_render(
 }
 
 pub fn update_level_render(
-    mut commands: Commands,
     game_state: Res<GameState>,
     mut level_render_query: Query<(Entity, &LevelRender, &mut Transform)>,
 
-    window_query: Query<&Window>,
     mut solution_status_text_query: Query<&mut Text, With<SolutionStatusText>>,
 ) {
-    let (level_render_entity, level_render, mut transform) = level_render_query.single_mut();
+    let (_, _, mut transform) = level_render_query.single_mut();
     let level = &game_state.level;
-    // let window = window_query.single();
-
-    // let window_width = window.resolution.width();
-    // let window_height = window.resolution.height();
-    // let (center_x, center_y) = (window_width / 2.0, window_height / 2.0);
 
     let (rows, columns) = (level.rows(), level.columns());
     let (level_width, level_height) = (columns as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
@@ -221,9 +203,8 @@ pub fn update_level_render(
 }
 
 pub fn update_placements_render(
-    mut commands: Commands,
     game_state: Res<GameState>,
-    level_render_query: Query<(&LevelRender)>,
+    level_render_query: Query<&LevelRender>,
     mut sprites_query: Query<(&mut Transform, &mut Visibility)>,
 ) {
     let level_render = level_render_query.single();

@@ -70,9 +70,6 @@ pub fn create_level_render(
     let (level_render_entity, mut level_render) = level_render_query.single_mut();
     let puzzle = &game_state.puzzle;
 
-    level_render.field.clear();
-    level_render.placements.clear();
-
     let (rows, columns) = (puzzle.rows(), puzzle.columns());
     let puzzle_height = rows as f32 * CELL_SIZE;
 
@@ -184,11 +181,14 @@ pub fn create_level_render(
 
 pub fn destroy_level_render(
     mut commands: Commands,
-    level_render_query: Query<Entity, (With<LevelRender>, With<Transform>)>,
+    mut level_render_query: Query<(Entity, &mut LevelRender)>,
 ) {
-    let level_render_entity = level_render_query.single();
+    let (level_render_entity, mut level_render) = level_render_query.single_mut();
     commands.entity(level_render_entity).despawn_descendants();
     commands.entity(level_render_entity).clear_children();
+
+    level_render.field.clear();
+    level_render.placements.clear();
 }
 
 pub fn update_level_render(

@@ -123,15 +123,12 @@ const DCOL: [i32; 4] = [0, 1, 0, -1];
 
 #[derive(Debug)]
 enum ViolationType {
-    NoGrass,
-    NoEdge,
-    NotPlaced,
-    TrashNearHouse,
+    AdjacentHouse,
 }
 
 #[derive(Debug)]
 pub struct PlacementViolation {
-    building_index: usize,
+    house_index: usize,
     violation: ViolationType,
 }
 
@@ -146,7 +143,7 @@ impl fmt::Display for ValidationResult {
             writeln!(
                 formatter,
                 "{}: {:?}",
-                violation.building_index, violation.violation
+                violation.house_index, violation.violation
             )?
         }
         Ok(())
@@ -156,19 +153,18 @@ impl fmt::Display for ValidationResult {
 pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResult {
     let mut placement_violations = Vec::new();
 
-    let mut has_building = vec![vec![false; puzzle.columns()]; puzzle.rows()];
+    let mut has_house = vec![vec![false; puzzle.columns()]; puzzle.rows()];
     for placement in &solution.placements {
-        has_building[placement.position.row][placement.position.column] = true;
+        has_house[placement.position.row][placement.position.column] = true;
     }
 
     // TODO: Check that each row and column is satisfied.
-    // TODO: Check that houses don't have house neighbors.
 
     // Check that houses have grass nearby.
     for (index, placement) in solution.placements.iter().enumerate() {
         let position = placement.position;
 
-        let mut found_grass = false;
+        let mut found_house = false;
         for d in 0..4 {
             let nrow = position.row as i32 + DROW[d];
             let ncol = position.column as i32 + DCOL[d];
@@ -178,16 +174,16 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
 
             let nrow = nrow as usize;
             let ncol = ncol as usize;
-            if has_building[nrow][ncol] && puzzle.field[nrow][ncol] == CellType::Grass {
-                found_grass = true;
+            if has_house[nrow][ncol] {
+                found_house = true;
                 break;
             }
         }
 
-        if !found_grass {
+        if found_house {
             placement_violations.push(PlacementViolation {
-                building_index: index,
-                violation: ViolationType::NoGrass,
+                house_index: index,
+                violation: ViolationType::AdjacentHouse,
             })
         }
     }

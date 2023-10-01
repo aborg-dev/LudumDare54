@@ -8,6 +8,7 @@ use self::level::Solution;
 mod input;
 mod level;
 mod render;
+mod select_level_screen;
 
 #[derive(Resource)]
 pub struct GameState {
@@ -50,6 +51,7 @@ enum AppState {
     InGame,
     #[default]
     SwitchLevel,
+    SelectLevelScreen,
 }
 
 fn setup(mut commands: Commands, server: Res<AssetServer>) {
@@ -128,6 +130,14 @@ fn main() {
         .add_systems(OnEnter(AppState::InGame), render::create_level_render)
         .add_systems(OnExit(AppState::InGame), render::destroy_level_render)
         .add_systems(OnEnter(AppState::SwitchLevel), switch_levels)
+        .add_systems(
+            OnEnter(AppState::SelectLevelScreen),
+            select_level_screen::create_select_level_screen,
+        )
+        .add_systems(
+            OnExit(AppState::SelectLevelScreen),
+            select_level_screen::destroy_select_level_screen,
+        )
         .add_systems(
             Update,
             (

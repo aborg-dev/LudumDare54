@@ -10,7 +10,7 @@ pub struct GameInputPlugin;
 impl Plugin for GameInputPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, keyboard_input)
-            .add_systems(Update, mouse_input);
+            .add_systems(Update, (mouse_input).run_if(in_state(AppState::InGame)));
     }
 }
 
@@ -33,6 +33,9 @@ fn keyboard_input(
             app_state.set(AppState::SwitchLevel);
             println!("Going to level {}", game_state.current_level);
         }
+    }
+    if keys.just_pressed(KeyCode::L) {
+        app_state.set(AppState::SelectLevelScreen);
     }
 
     if keys.just_pressed(KeyCode::M) {

@@ -1,4 +1,4 @@
-use bevy::audio::{PlaybackMode, Volume};
+use bevy::audio::PlaybackMode;
 use bevy::prelude::*;
 use bevy::window::{close_on_esc, WindowMode};
 
@@ -35,6 +35,16 @@ pub struct TextureHandles {
     textures: Vec<Handle<u32>>,
 }
 
+#[derive(Resource)]
+pub struct GlobalVolumeSettings {
+    pub volume: f32,
+}
+
+#[derive(Component)]
+pub struct VolumeSettings {
+    pub volume: f32,
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
 enum AppState {
     InGame,
@@ -52,15 +62,28 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
             .to_vec(),
     });
 
-    // commands.spawn(AudioBundle {
-    //     source: server.load("ambient.mp3"),
-    //     settings: PlaybackSettings {
-    //         mode: PlaybackMode::Loop,
-    //         volume: Volume::new_relative(0.1),
-    //         ..default()
-    //     },
-    //     ..default()
-    // });
+    commands.spawn((
+        AudioBundle {
+            source: server.load("ambient.mp3"),
+            settings: PlaybackSettings {
+                mode: PlaybackMode::Loop,
+                ..default()
+            },
+            ..default()
+        },
+        VolumeSettings { volume: 0.1 },
+    ));
+
+    commands.insert_resource(GlobalVolumeSettings { volume: 0.0 });
+}
+
+fn update_sounds(
+    mut audio_query: Query<(&mut AudioSink, &VolumeSettings)>,
+    global_volume_settings: Res<GlobalVolumeSettings>,
+) {
+    for (sink, volume_settings) in &mut audio_query.iter_mut() {
+        sink.set_volume(global_volume_settings.volume * volume_settings.volume);
+    }
 }
 
 fn switch_levels(
@@ -94,6 +117,7 @@ fn main() {
         .add_state::<AppState>()
         .add_systems(Startup, setup)
         .add_systems(Update, close_on_esc)
+        .add_systems(Update, update_sounds)
         .add_systems(OnEnter(AppState::InGame), render::create_level_render)
         .add_systems(OnExit(AppState::InGame), render::destroy_level_render)
         .add_systems(OnEnter(AppState::SwitchLevel), switch_levels)

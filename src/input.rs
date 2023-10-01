@@ -1,5 +1,5 @@
 use crate::level::{all_levels, CellType, Placement, Position};
-use crate::{render, AppState, GameState};
+use crate::{render, AppState, GameState, GlobalVolumeSettings, VolumeSettings};
 use bevy::audio::*;
 use bevy::math::*;
 use bevy::prelude::*;
@@ -18,6 +18,7 @@ fn keyboard_input(
     keys: Res<Input<KeyCode>>,
     mut game_state: ResMut<GameState>,
     mut app_state: ResMut<NextState<AppState>>,
+    mut global_volume_settings: ResMut<GlobalVolumeSettings>,
 ) {
     if keys.just_pressed(KeyCode::Right) {
         if game_state.current_level + 1 < all_levels().len() {
@@ -31,6 +32,14 @@ fn keyboard_input(
             game_state.current_level -= 1;
             app_state.set(AppState::SwitchLevel);
             println!("Going to level {}", game_state.current_level);
+        }
+    }
+
+    if keys.just_pressed(KeyCode::M) {
+        if global_volume_settings.volume == 0.0 {
+            global_volume_settings.volume = 1.0;
+        } else {
+            global_volume_settings.volume = 0.0;
         }
     }
 }
@@ -76,17 +85,19 @@ fn mouse_input(
                     .all(|x| !(x.position == position))
             {
                 game_state.solution.placements.push(Placement { position });
+                game_state.hints[r][c] = false;
 
-                commands.spawn(AudioBundle {
-                    source: server.load("place.wav"),
-                    settings: PlaybackSettings {
-                        volume: Volume::new_relative(0.6),
-                        speed: 1.2,
+                commands.spawn((
+                    AudioBundle {
+                        source: server.load("place.wav"),
+                        settings: PlaybackSettings {
+                            speed: 1.2,
+                            ..default()
+                        },
                         ..default()
                     },
-                    ..default()
-                });
-                game_state.hints[r][c] = false;
+                    VolumeSettings { volume: 0.6 },
+                ));
             }
 
             // Remove placements at this position.
@@ -98,25 +109,30 @@ fn mouse_input(
                     .position(|x| x.position == position)
                 {
                     game_state.solution.placements.remove(index);
-                    commands.spawn(AudioBundle {
-                        source: server.load("remove.wav"),
-                        settings: PlaybackSettings {
-                            volume: Volume::new_relative(0.5),
-                            speed: 1.2,
+                    commands.spawn((
+                        AudioBundle {
+                            source: server.load("remove.wav"),
+                            settings: PlaybackSettings {
+                                speed: 1.2,
+                                ..default()
+                            },
                             ..default()
                         },
-                        ..default()
-                    });
+                        VolumeSettings { volume: 0.5 },
+                    ));
+                    game_state.hints[r][c] = false;
                 } else {
-                    commands.spawn(AudioBundle {
-                        source: server.load("remove.wav"),
-                        settings: PlaybackSettings {
-                            volume: Volume::new_relative(0.5),
-                            speed: 1.2,
+                    commands.spawn((
+                        AudioBundle {
+                            source: server.load("remove.wav"),
+                            settings: PlaybackSettings {
+                                speed: 1.2,
+                                ..default()
+                            },
                             ..default()
                         },
-                        ..default()
-                    });
+                        VolumeSettings { volume: 0.5 },
+                    ));
                     game_state.hints[r][c] ^= true;
                 }
             }

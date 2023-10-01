@@ -57,7 +57,7 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
     let game_level = level::all_levels().swap_remove(0);
     commands.insert_resource(GameState::new(game_level.puzzle, 0));
     commands.insert_resource(TextureHandles {
-        textures: ["house.png", "cross.png"]
+        textures: ["house.png", "cross.png", "dot.png"]
             .map(|name| server.load(name))
             .to_vec(),
     });

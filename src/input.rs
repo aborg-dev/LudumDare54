@@ -124,7 +124,7 @@ fn mouse_input(
                 } else {
                     commands.spawn((
                         AudioBundle {
-                            source: server.load("remove.wav"),
+                            source: server.load("hint.wav"),
                             settings: PlaybackSettings {
                                 speed: 1.2,
                                 ..default()

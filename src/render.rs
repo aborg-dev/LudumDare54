@@ -118,16 +118,24 @@ pub fn create_level_render(
                 .id();
             commands.entity(level_render_entity).add_child(id);
 
+            let dot_scale = 1.0 / 8.0;
             let id = commands
                 .spawn((
                     SpriteBundle {
                         sprite: Sprite {
-                            custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
+                            custom_size: Some(Vec2::new(
+                                CELL_SIZE * dot_scale,
+                                CELL_SIZE * dot_scale,
+                            )),
                             anchor: Anchor::BottomLeft,
                             ..Default::default()
                         },
-                        transform: Transform::from_xyz(tx, ty, 0.1),
-                        texture: server.load("cross.png"),
+                        transform: Transform::from_xyz(
+                            tx + CELL_SIZE * (1.0 - dot_scale) / 2.0,
+                            ty + CELL_SIZE * (1.0 - dot_scale) / 2.0,
+                            0.1,
+                        ),
+                        texture: server.load("dot.png"),
                         visibility: Visibility::Hidden,
                         ..Default::default()
                     },

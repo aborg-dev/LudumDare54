@@ -132,6 +132,19 @@ pub struct PlacementViolation {
     pub violation: ViolationType,
 }
 
+#[derive(Debug)]
+pub enum ConstraintViolationType {
+    Underflow,
+    Match,
+    Overflow,
+}
+
+#[derive(Debug)]
+pub struct ConstraintViolation {
+    pub position: Position,
+    pub violation: ConstraintViolationType,
+}
+
 #[derive(Debug, Clone)]
 pub enum LineStatus {
     Underflow,
@@ -144,6 +157,7 @@ pub struct ValidationResult {
     pub row_status: Vec<LineStatus>,
     pub col_status: Vec<LineStatus>,
     pub placement_violations: Vec<PlacementViolation>,
+    pub constraint_violations: Vec<ConstraintViolation>,
 }
 
 impl fmt::Display for ValidationResult {
@@ -220,11 +234,56 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
         }
     }
 
+    let mut constraint_violations = Vec::new();
+    for row in 0..puzzle.rows() {
+        for col in 0..puzzle.columns() {
+            match puzzle.field[row][col] {
+                CellType::Grass => {},
+                CellType::Tree => {},
+                CellType::Lake => {
+                    let count = count_houses_in_3x3(row, col, &has_house, puzzle);
+                    let t = match count.cmp(&3) {
+                        std::cmp::Ordering::Less => ConstraintViolationType::Underflow,
+                        std::cmp::Ordering::Equal => ConstraintViolationType::Match,
+                        std::cmp::Ordering::Greater => ConstraintViolationType::Overflow,
+                    };
+                    constraint_violations.push(ConstraintViolation {
+                        position: Position { row, column: col },
+                        violation: t,
+                    });
+                },
+                CellType::Mountain => {
+
+                },
+            };
+        }
+    }
+
     ValidationResult {
         row_status,
         col_status,
         placement_violations,
+        constraint_violations,
     }
+}
+
+pub fn count_houses_in_3x3(row: usize, col: usize, has_house: &Vec<Vec<bool>>, puzzle: &Puzzle) -> usize {
+    let mut count = 0;
+    for drow in -1..=1 {
+        for dcol in -1..=1 {
+            let nrow = row as i32 + drow;
+            let ncol = col as i32 + dcol;
+            if !puzzle.is_valid(nrow, ncol) {
+                continue;
+            }
+            let nrow = nrow as usize;
+            let ncol = ncol as usize;
+            if has_house[nrow][ncol] {
+                count += 1;
+            }
+        }
+    }
+    count
 }
 
 pub struct GameLevel {

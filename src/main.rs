@@ -26,7 +26,7 @@ enum AppState {
 fn setup(mut commands: Commands, mut app_state: ResMut<NextState<AppState>>) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn((render::LevelRender::default(), SpatialBundle::default()));
-    let game_level = level::all_levels().swap_remove(2);
+    let game_level = level::all_levels().swap_remove(0);
     let solution = Solution::empty_from_puzzle(&game_level.puzzle);
     commands.insert_resource(GameState {
         puzzle: game_level.puzzle,

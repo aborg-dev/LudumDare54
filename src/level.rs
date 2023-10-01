@@ -69,6 +69,8 @@ impl CellType {
 #[derive(Debug)]
 pub struct Puzzle {
     pub building_count: BTreeMap<BuildingType, usize>,
+    pub row_count: Vec<usize>,
+    pub col_count: Vec<usize>,
     pub field: Vec<Vec<CellType>>,
 }
 
@@ -349,7 +351,7 @@ pub struct GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn new_first_level() -> GameLevel {
+pub fn first_level() -> GameLevel {
     GameLevel {
         name: "two_lakes".into(),
         puzzle: Puzzle {
@@ -360,65 +362,17 @@ pub fn new_first_level() -> GameLevel {
                "....",
                "..T.",
             ]),
+            row_count: vec![2, 1, 2, 1],
+            col_count: vec![2, 1, 1, 2],
         },
         solution: Solution::parse(vec![
            "1gT", 
            "11g",
            "g11",
-        ]),
-    }
-}
-
-#[rustfmt::skip]
-pub fn first_level() -> GameLevel {
-    GameLevel {
-        name: "trash_and_houses".into(),
-        puzzle: Puzzle {
-            building_count: BTreeMap::from([(BuildingType::House, 5), (BuildingType::Trash, 1)]),
-            field: field_from_size(3, 3),
-        },
-        solution: Solution::parse(vec![
-           "1gT", 
-           "11g",
-           "g11",
-        ]),
-    }
-}
-
-#[rustfmt::skip]
-pub fn second_level() -> GameLevel {
-    GameLevel {
-        name: "hermits_and_houses".into(),
-        puzzle: Puzzle {
-            building_count: BTreeMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 4)]),
-            field: field_from_size(3, 3),
-        },
-        solution: Solution::parse(vec![
-           "H1H", 
-           "1g1",
-           "H1H",
-        ]),
-    }
-}
-
-#[rustfmt::skip]
-pub fn third_level() -> GameLevel {
-    let mut puzzle = Puzzle {
-        building_count: BTreeMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 3)]),
-        field: field_from_size(3, 3),
-    };
-    puzzle.field[0][0] = CellType::Tree;
-    GameLevel {
-        name: "with_hole".into(),
-        puzzle,
-        solution: Solution::parse(vec![
-            "x1H",
-            "1g1",
-            "H1H",
         ]),
     }
 }
 
 pub fn all_levels() -> Vec<GameLevel> {
-    vec![first_level(), second_level(), third_level()]
+    vec![first_level()]
 }

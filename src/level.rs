@@ -132,13 +132,24 @@ pub struct PlacementViolation {
     violation: ViolationType,
 }
 
+#[derive(Debug, Clone)]
+pub enum LineStatus {
+    Underflow,
+    Match,
+    Overflow,
+}
+
 #[derive(Debug)]
 pub struct ValidationResult {
+    row_status: Vec<LineStatus>,
+    col_status: Vec<LineStatus>,
     placement_violations: Vec<PlacementViolation>,
 }
 
 impl fmt::Display for ValidationResult {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(formatter, "Rows: {:?}", self.row_status)?;
+        writeln!(formatter, "Columns: {:?}", self.col_status)?;
         for violation in &self.placement_violations {
             writeln!(
                 formatter,
@@ -158,7 +169,28 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
         has_house[placement.position.row][placement.position.column] = true;
     }
 
-    // TODO: Check that each row and column is satisfied.
+    // Check that each row and column is satisfied.
+    let mut row_status = vec![LineStatus::Underflow; puzzle.rows()];
+    for row in 0..puzzle.rows() {
+        let house_count = has_house[row].iter().filter(|&b| *b).count();
+        row_status[row] = match house_count.cmp(&puzzle.row_count[row]) {
+            std::cmp::Ordering::Less => LineStatus::Underflow,
+            std::cmp::Ordering::Equal => LineStatus::Match,
+            std::cmp::Ordering::Greater => LineStatus::Overflow,
+        };
+    }
+    let mut col_status = vec![LineStatus::Underflow; puzzle.columns()];
+    for col in 0..puzzle.columns() {
+        let mut house_count = 0;
+        for row in 0..puzzle.rows() {
+            house_count += has_house[row][col] as usize;
+        }
+        col_status[col] = match house_count.cmp(&puzzle.col_count[col]) {
+            std::cmp::Ordering::Less => LineStatus::Underflow,
+            std::cmp::Ordering::Equal => LineStatus::Match,
+            std::cmp::Ordering::Greater => LineStatus::Overflow,
+        };
+    }
 
     // Check that houses have grass nearby.
     for (index, placement) in solution.placements.iter().enumerate() {
@@ -189,6 +221,8 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
     }
 
     ValidationResult {
+        row_status,
+        col_status,
         placement_violations,
     }
 }

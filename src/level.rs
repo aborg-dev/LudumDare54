@@ -192,7 +192,7 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
         };
     }
 
-    // Check that houses have grass nearby.
+    // Check that houses don't have other houses nearby.
     for (index, placement) in solution.placements.iter().enumerate() {
         let position = placement.position;
 

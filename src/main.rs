@@ -1,3 +1,4 @@
+use bevy::audio::{PlaybackMode, Volume};
 use bevy::prelude::*;
 use bevy::window::{close_on_esc, WindowMode};
 
@@ -22,7 +23,11 @@ enum AppState {
     SwitchLevel,
 }
 
-fn setup(mut commands: Commands, mut app_state: ResMut<NextState<AppState>>) {
+fn setup(
+    mut commands: Commands,
+    mut app_state: ResMut<NextState<AppState>>,
+    server: Res<AssetServer>,
+) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn((render::LevelRender::default(), SpatialBundle::default()));
     let game_level = level::all_levels().swap_remove(0);
@@ -33,6 +38,16 @@ fn setup(mut commands: Commands, mut app_state: ResMut<NextState<AppState>>) {
         current_level: 0,
     });
     app_state.set(AppState::InGame);
+
+    commands.spawn(AudioBundle {
+        source: server.load("ambient.mp3"),
+        settings: PlaybackSettings {
+            mode: PlaybackMode::Loop,
+            volume: Volume::new_relative(0.1),
+            ..default()
+        },
+        ..default()
+    });
 }
 
 fn switch_levels(mut game_state: ResMut<GameState>, mut app_state: ResMut<NextState<AppState>>) {

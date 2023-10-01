@@ -1,5 +1,6 @@
 use crate::level::{CellType, Placement, Position, all_levels};
 use crate::{render, GameState, AppState};
+use bevy::audio::*;
 use bevy::math::*;
 use bevy::prelude::*;
 use bevy::window::{PrimaryWindow, Window};
@@ -47,6 +48,8 @@ fn mouse_input(
     level_render_query: Query<&Transform, With<render::LevelRender>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     mut game_state: ResMut<GameState>,
+    mut commands: Commands,
+    server: Res<AssetServer>,
 ) {
     let level_transform = level_render_query.single();
     let (camera, camera_global_transform) = camera_query.single();
@@ -80,14 +83,40 @@ fn mouse_input(
                     .all(|x| !(x.position == position))
             {
                 game_state.solution.placements.push(Placement { position });
+
+                commands.spawn(AudioBundle {
+                    source: server.load("place.wav"),
+                    settings: PlaybackSettings {
+                        volume: Volume::new_relative(0.6),
+                        speed: 1.2,
+                        ..default()
+                    },
+                    ..default()
+                });
             }
 
             // Remove placements at this position.
-            if right_just_pressed {
+            if right_just_pressed
+                && game_state
+                    .solution
+                    .placements
+                    .iter()
+                    .any(|x| x.position == position)
+            {
                 game_state
                     .solution
                     .placements
-                    .retain(|p| p.position != position);
+                    .retain(|x| x.position != position);
+
+                commands.spawn(AudioBundle {
+                    source: server.load("remove.wav"),
+                    settings: PlaybackSettings {
+                        volume: Volume::new_relative(0.5),
+                        speed: 1.2,
+                        ..default()
+                    },
+                    ..default()
+                });
             }
         }
     }

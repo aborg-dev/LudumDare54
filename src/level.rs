@@ -122,7 +122,7 @@ const DROW: [i32; 4] = [1, 0, -1, 0];
 const DCOL: [i32; 4] = [0, 1, 0, -1];
 
 #[derive(Debug)]
-enum ViolationType {
+pub enum ViolationType {
     AdjacentHouse,
 }
 

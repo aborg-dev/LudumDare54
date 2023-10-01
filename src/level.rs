@@ -321,7 +321,7 @@ pub struct GameLevel {
 #[rustfmt::skip]
 pub fn two_takes() -> GameLevel {
     GameLevel {
-        name: "two_lakes".into(),
+        name: "Twin Lakes".into(),
         puzzle: Puzzle {
             field: parse_field(vec![
                "....",
@@ -338,7 +338,7 @@ pub fn two_takes() -> GameLevel {
 #[rustfmt::skip]
 pub fn trees_4x4() -> GameLevel {
     GameLevel {
-        name: "trees_4x4".into(),
+        name: "Forest".into(),
         puzzle: Puzzle {
             field: parse_field(vec![
                "..T.",
@@ -355,7 +355,7 @@ pub fn trees_4x4() -> GameLevel {
 #[rustfmt::skip]
 pub fn mountain_4x4() -> GameLevel {
     GameLevel {
-        name: "mountain_4x4".into(),
+        name: "Green Mountain".into(),
         puzzle: Puzzle {
             field: parse_field(vec![
                "..T.",
@@ -372,7 +372,7 @@ pub fn mountain_4x4() -> GameLevel {
 #[rustfmt::skip]
 pub fn lake_and_trees_4x4() -> GameLevel {
     GameLevel {
-        name: "lake_and_trees_4x4".into(),
+        name: "Green Lake".into(),
         puzzle: Puzzle {
             field: parse_field(vec![
                "....",
@@ -389,7 +389,7 @@ pub fn lake_and_trees_4x4() -> GameLevel {
 #[rustfmt::skip]
 pub fn mountain_lakes_5x5() -> GameLevel {
     GameLevel {
-        name: "mountain_lakes_5x5".into(),
+        name: "Mountain lakes".into(),
         puzzle: Puzzle {
             field: parse_field(vec![
                ".....",
@@ -407,7 +407,7 @@ pub fn mountain_lakes_5x5() -> GameLevel {
 #[rustfmt::skip]
 pub fn twin_mountains_5x5() -> GameLevel {
     GameLevel {
-        name: "twin_mountains_5x5".into(),
+        name: "Twin Mountains".into(),
         puzzle: Puzzle {
             field: parse_field(vec![
                ".....",
@@ -425,7 +425,7 @@ pub fn twin_mountains_5x5() -> GameLevel {
 #[rustfmt::skip]
 pub fn lonely_mountain_5x5() -> GameLevel {
     GameLevel {
-        name: "lonely_mountain_5x5".into(),
+        name: "Lonely Mountain".into(),
         puzzle: Puzzle {
             field: parse_field(vec![
                ".....",
@@ -443,7 +443,7 @@ pub fn lonely_mountain_5x5() -> GameLevel {
 #[rustfmt::skip]
 pub fn mega_lakes_5x5() -> GameLevel {
     GameLevel {
-        name: "meka_lakes_5x5".into(),
+        name: "Lake Valley".into(),
         puzzle: Puzzle {
             field: parse_field(vec![
                ".....",

@@ -47,7 +47,7 @@ pub struct VolumeSettings {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
-enum AppState {
+pub enum AppState {
     InGame,
     #[default]
     SwitchLevel,
@@ -139,6 +139,10 @@ fn main() {
         .add_systems(
             OnExit(AppState::SelectLevelScreen),
             select_level_screen::destroy_select_level_screen,
+        )
+        .add_systems(
+            Update,
+            (select_level_screen::button_system,).run_if(in_state(AppState::SelectLevelScreen)),
         )
         .add_systems(
             Update,

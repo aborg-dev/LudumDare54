@@ -1,15 +1,11 @@
-use bevy::a11y::accesskit::{NodeBuilder, Role};
-use bevy::a11y::AccessibilityNode;
-use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
 use bevy::text::TextStyle;
 use bevy::utils::default;
 
 use bevy::prelude::*;
-use bevy::ui::{
-    AlignItems, AlignSelf, FlexDirection, JustifyContent, Overflow, Style, UiRect, Val,
-};
+use bevy::ui::{Style, UiRect, Val};
 
-use crate::level::all_levels;
+use crate::level::{all_levels, GameLevel};
+use crate::{AppState, GameState};
 
 #[derive(Resource)]
 pub struct SelectLevelScreenRoot {
@@ -20,106 +16,120 @@ pub fn create_select_level_screen(mut commands: Commands, server: Res<AssetServe
     let id = commands
         .spawn(NodeBundle {
             style: Style {
+                /// Use the CSS Grid algorithm for laying out this node
+                display: Display::Grid,
+                /// Make node fill the entirety it's parent (in this case the window)
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
-                justify_content: JustifyContent::SpaceBetween,
+                /// Set the grid to have 2 columns with sizes [min-content, minmax(0, 1fr)]
+                ///   - The first column will size to the size of it's contents
+                ///   - The second column will take up the remaining available space
+                grid_template_columns: vec![GridTrack::min_content(), GridTrack::flex(1.0)],
+                /// Set the grid to have 3 rows with sizes [auto, minmax(0, 1fr), 20px]
+                ///  - The first row will size to the size of it's contents
+                ///  - The second row take up remaining available space (after rows 1 and 3 have both been sized)
+                ///  - The third row will be exactly 20px high
+                grid_template_rows: vec![
+                    GridTrack::auto(),
+                    GridTrack::flex(1.0),
+                    GridTrack::px(20.),
+                ],
                 ..default()
             },
+            background_color: BackgroundColor(Color::WHITE),
             ..default()
         })
-        .with_children(|parent| {
-            parent
+        .with_children(|builder| {
+            // Main content grid (auto placed in row 2, column 1)
+            builder
                 .spawn(NodeBundle {
                     style: Style {
-                        flex_direction: FlexDirection::Column,
-                        align_self: AlignSelf::Stretch,
-                        height: Val::Percent(50.),
-                        overflow: Overflow::clip_y(),
+                        /// Make the height of the node fill its parent
+                        height: Val::Percent(100.0),
+                        /// Make the grid have a 1:1 aspect ratio meaning it will scale as an exact square
+                        /// As the height is set explicitly, this means the width will adjust to match the height
+                        aspect_ratio: Some(1.0),
+                        /// Use grid layout for this node
+                        display: Display::Grid,
+                        // Add 24px of padding around the grid
+                        padding: UiRect::all(Val::Px(24.0)),
+                        /// Set the grid to have 4 columns all with sizes minmax(0, 1fr)
+                        /// This creates 4 exactly evenly sized columns
+                        grid_template_columns: RepeatedGridTrack::flex(4, 1.0),
+                        /// Set the grid to have 4 rows all with sizes minmax(0, 1fr)
+                        /// This creates 4 exactly evenly sized rows
+                        grid_template_rows: RepeatedGridTrack::flex(4, 1.0),
+                        /// Set a 12px gap/gutter between rows and columns
+                        row_gap: Val::Px(12.0),
+                        column_gap: Val::Px(12.0),
                         ..default()
                     },
-                    background_color: Color::rgb(0.10, 0.10, 0.10).into(),
+                    background_color: BackgroundColor(Color::DARK_GRAY),
                     ..default()
                 })
-                .with_children(|parent| {
-                    // Moving panel
-                    parent
-                        .spawn((
-                            NodeBundle {
-                                style: Style {
-                                    flex_direction: FlexDirection::Column,
-                                    align_items: AlignItems::Center,
-                                    ..default()
-                                },
-                                ..default()
-                            },
-                            ScrollingList::default(),
-                            AccessibilityNode(NodeBuilder::new(Role::List)),
-                        ))
-                        .with_children(|parent| {
-                            // List items
-                            for level in all_levels() {
-                                parent.spawn((
-                                    TextBundle::from_section(
-                                        format!("{}", level.name),
-                                        TextStyle {
-                                            font: server.load("NotoSerif-SemiBold.ttf"),
-                                            font_size: 24.,
-                                            color: Color::WHITE,
-                                        },
-                                    ),
-                                    Label,
-                                    AccessibilityNode(NodeBuilder::new(Role::ListItem)),
-                                ));
-                            }
-                        });
+                .with_children(|builder| {
+                    for (index, level) in all_levels().iter().enumerate() {
+                        item_level(builder, index, level, server.load("NotoSerif-SemiBold.ttf"));
+                    }
                 });
-
-            // left vertical fill (border)
-            parent.spawn(NodeBundle {
-                style: Style {
-                    width: Val::Px(200.),
-                    border: UiRect::all(Val::Px(2.)),
-                    ..default()
-                },
-                background_color: Color::rgb(0.65, 0.65, 0.65).into(),
-                ..default()
-            });
         })
         .id();
 
     commands.insert_resource(SelectLevelScreenRoot { root: id });
 }
 
+#[derive(Component, Debug)]
+pub struct LevelIndex {
+    index: usize,
+}
+
+fn item_level(builder: &mut ChildBuilder, index: usize, level: &GameLevel, font: Handle<Font>) {
+    builder
+        .spawn((
+            ButtonBundle {
+                style: Style {
+                    display: Display::Grid,
+                    align_items: AlignItems::Center,
+                    justify_items: JustifyItems::Center,
+                    padding: UiRect::all(Val::Px(3.0)),
+                    ..default()
+                },
+                background_color: BackgroundColor(Color::ORANGE),
+                ..default()
+            },
+            LevelIndex { index },
+        ))
+        .with_children(|builder| {
+            builder.spawn(TextBundle::from_section(
+                level.name.clone(),
+                TextStyle {
+                    font,
+                    font_size: 24.0,
+                    color: Color::BLACK,
+                },
+            ));
+        });
+}
+
+pub fn button_system(
+    mut interaction_query: Query<(&Interaction, &LevelIndex), Changed<Interaction>>,
+    mut app_state: ResMut<NextState<AppState>>,
+    mut game_state: ResMut<GameState>,
+) {
+    for (interaction, level_index) in &mut interaction_query {
+        // let mut text = text_query.get_mut(children[0]).unwrap();
+        match *interaction {
+            Interaction::Pressed => {
+                game_state.current_level = level_index.index;
+                app_state.set(AppState::SwitchLevel);
+            }
+            Interaction::Hovered => {}
+            Interaction::None => {}
+        }
+    }
+}
+
 pub fn destroy_select_level_screen(mut commands: Commands, root: Res<SelectLevelScreenRoot>) {
     let mut root_entity = commands.entity(root.root);
     root_entity.despawn();
-}
-
-#[derive(Component, Default)]
-struct ScrollingList {
-    position: f32,
-}
-
-fn mouse_scroll(
-    mut mouse_wheel_events: EventReader<MouseWheel>,
-    mut query_list: Query<(&mut ScrollingList, &mut Style, &Parent, &Node)>,
-    query_node: Query<&Node>,
-) {
-    for mouse_wheel_event in mouse_wheel_events.iter() {
-        for (mut scrolling_list, mut style, parent, list_node) in &mut query_list {
-            let items_height = list_node.size().y;
-            let container_height = query_node.get(parent.get()).unwrap().size().y;
-
-            let max_scroll = (items_height - container_height).max(0.);
-
-            let dy = match mouse_wheel_event.unit {
-                MouseScrollUnit::Line => mouse_wheel_event.y * 20.,
-                MouseScrollUnit::Pixel => mouse_wheel_event.y,
-            };
-
-            scrolling_list.position += dy;
-            scrolling_list.position = scrolling_list.position.clamp(-max_scroll, 0.);
-            style.top = Val::Px(scrolling_list.position);
-        }
-    }
 }

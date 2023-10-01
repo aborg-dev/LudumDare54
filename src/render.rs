@@ -2,12 +2,12 @@ use crate::level::*;
 use crate::GameState;
 use bevy::math::Vec2;
 use bevy::prelude::*;
-use bevy::render::texture::DEFAULT_IMAGE_HANDLE;
-use bevy::sprite::{Anchor, MaterialMesh2dBundle, Mesh2dHandle};
+use bevy::sprite::*;
 use std::default::Default;
-use bevy::render::mesh::{Indices, PrimitiveTopology};
+use rand::prelude::*;
 
-pub const CELL_SIZE: f32 = 200.0;
+pub const CELL_SIZE: f32 = 150.0;
+
 pub const GRASS_LAYER: f32 = 0.0;
 pub const CELL_LAYER: f32 = 100.0;
 pub const CROSS_LAYER: f32 = 200.0;
@@ -72,6 +72,8 @@ pub fn create_level_render(
     let (rows, columns) = (puzzle.rows(), puzzle.columns());
     let puzzle_height = rows as f32 * CELL_SIZE;
 
+    let mut rng = StdRng::seed_from_u64(game_state.current_level as u64);
+
     assert_eq!(rows, columns);
     for r in 0..rows {
         for c in 0..columns {
@@ -82,10 +84,12 @@ pub fn create_level_render(
             let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
             let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
 
+            let id: u32 = rng.gen();
+            let id = id % 3 + 1;
             let grass_texture = if (r + c) % 2 == 0 {
-                server.load("grass_iso_dark_2.png")
+                server.load(format!("grass_iso_dark_{id}.png"))
             } else {
-                server.load("grass_iso_light_2.png")
+                server.load(format!("grass_iso_light_{id}.png"))
             };
             let id = commands
                 .spawn(SpriteBundle {
@@ -299,10 +303,12 @@ pub fn update_placements_render(
                 let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
                 let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
 
+                let z = ((cols - c + 1) + r) as f32 * 0.1;
+
                 *transform = Transform::from_xyz(
                     ix,
                     iy,
-                    ((cols - c + 1) + r) as f32 * 1.0 + 100.0,
+                    z + CELL_LAYER,
                 );
             } else {
                 *visibility = Visibility::Hidden;

@@ -71,10 +71,15 @@ pub fn create_level_render(
     let puzzle = &game_state.puzzle;
 
     let (rows, columns) = (puzzle.rows(), puzzle.columns());
+    let puzzle_height = rows as f32 * CELL_SIZE;
+
     level_render.field.resize(rows, vec![]);
     for r in 0..rows {
         for c in 0..columns {
             let color = get_cell_color(puzzle.field[r][c]);
+            let tx = c as f32 * CELL_SIZE;
+            let ty = puzzle_height - CELL_SIZE - r as f32 * CELL_SIZE;
+
             let id = commands
                 .spawn(SpriteBundle {
                     sprite: Sprite {
@@ -83,7 +88,7 @@ pub fn create_level_render(
                         anchor: Anchor::BottomLeft,
                         ..Default::default()
                     },
-                    transform: Transform::from_xyz(c as f32 * CELL_SIZE, r as f32 * CELL_SIZE, 0.0),
+                    transform: Transform::from_xyz(tx, ty, 0.0),
                     ..Default::default()
                 })
                 .id();
@@ -98,11 +103,7 @@ pub fn create_level_render(
                             anchor: Anchor::BottomLeft,
                             ..Default::default()
                         },
-                        transform: Transform::from_xyz(
-                            c as f32 * CELL_SIZE,
-                            r as f32 * CELL_SIZE,
-                            0.1,
-                        ),
+                        transform: Transform::from_xyz(tx, ty, 0.1),
                         texture: server.load("cross.png"),
                         ..Default::default()
                     },
@@ -164,7 +165,11 @@ pub fn create_level_render(
                 text_style.clone(),
             )
             .with_alignment(TextAlignment::Center),
-            transform: Transform::from_xyz(-0.2 * CELL_SIZE, (r as f32 + 0.5) * CELL_SIZE, 0.0),
+            transform: Transform::from_xyz(
+                -0.2 * CELL_SIZE,
+                puzzle_height - (r as f32 + 0.5) * CELL_SIZE,
+                0.0,
+            ),
             ..default()
         };
         let id = commands
@@ -220,6 +225,7 @@ pub fn update_placements_render(
     mut sprites_query: Query<(&mut Transform, &mut Visibility)>,
 ) {
     let level_render = level_render_query.single();
+    let puzzle_height = game_state.puzzle.rows() as f32 * CELL_SIZE;
 
     for i in 0..100 {
         let id = level_render.placements[i];
@@ -229,7 +235,7 @@ pub fn update_placements_render(
                 *visibility = Visibility::Inherited;
                 *transform = Transform::from_xyz(
                     placement.position.column as f32 * CELL_SIZE,
-                    placement.position.row as f32 * CELL_SIZE,
+                    puzzle_height - CELL_SIZE - placement.position.row as f32 * CELL_SIZE,
                     0.0,
                 );
             } else {

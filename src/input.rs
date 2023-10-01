@@ -58,7 +58,7 @@ fn mouse_input(
         let upper_bound = Vec2::new(columns as f32, rows as f32);
         if p.cmpge(lower_bound).all() && p.cmplt(upper_bound).all() {
             let position = Position {
-                row: p.y as usize,
+                row: rows - 1 - p.y as usize,
                 column: p.x as usize,
             };
             let r = position.row;

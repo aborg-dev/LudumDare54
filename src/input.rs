@@ -100,6 +100,7 @@ fn mouse_input(
                     AudioBundle {
                         source: server.load("place.wav"),
                         settings: PlaybackSettings {
+                            volume: Volume::new_absolute(0.0),
                             speed: 1.2,
                             ..default()
                         },
@@ -122,6 +123,7 @@ fn mouse_input(
                         AudioBundle {
                             source: server.load("remove.wav"),
                             settings: PlaybackSettings {
+                                volume: Volume::new_absolute(0.0),
                                 speed: 1.2,
                                 ..default()
                             },
@@ -135,6 +137,7 @@ fn mouse_input(
                         AudioBundle {
                             source: server.load("hint.wav"),
                             settings: PlaybackSettings {
+                                volume: Volume::new_absolute(0.0),
                                 speed: 1.2,
                                 ..default()
                             },

@@ -176,8 +176,6 @@ pub fn destroy_level_render(
 pub fn update_level_render(
     game_state: Res<GameState>,
     mut level_render_query: Query<(Entity, &LevelRender, &mut Transform)>,
-
-    mut solution_status_text_query: Query<&mut Text, With<SolutionStatusText>>,
 ) {
     let (_, _, mut transform) = level_render_query.single_mut();
     let level = &game_state.level;
@@ -186,11 +184,6 @@ pub fn update_level_render(
     let (level_width, level_height) = (columns as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
 
     transform.translation = Vec3::new(-level_width / 2.0, -level_height / 2.0, 0.0);
-
-    // TODO: We can actually update this only if solution changes.
-    let solution = &game_state.solution;
-    let validation_result = validate_solution(solution, level);
-    solution_status_text_query.single_mut().sections[0].value = format!("{}", validation_result);
 }
 
 pub fn update_placements_render(
@@ -240,7 +233,16 @@ pub fn build_available_buildings_texts(
 }
 
 // TODO: We can actually update this only if solution changes.
-pub fn update_available_buildings_text(
+pub fn update_solution_status(
+    game_state: Res<GameState>,
+    mut solution_status_text_query: Query<&mut Text, With<SolutionStatusText>>,
+) {
+    let validation_result = validate_solution(&game_state.solution, &game_state.level);
+    solution_status_text_query.single_mut().sections[0].value = format!("{}", validation_result);
+}
+
+// TODO: We can actually update this only if solution changes.
+pub fn update_available_buildings(
     game_state: Res<GameState>,
     selected_building: Res<SelectedBuilding>,
     mut available_buildings_text: Query<(&mut Text, &AvailableBuildingsText)>,

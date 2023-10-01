@@ -59,15 +59,13 @@ fn main() {
         .add_systems(OnExit(AppState::InGame), render::destroy_level_render)
         .add_systems(
             Update,
-            (render::update_level_render).run_if(in_state(AppState::InGame)),
-        )
-        .add_systems(
-            Update,
-            (render::update_placements_render).run_if(in_state(AppState::InGame)),
-        )
-        .add_systems(
-            Update,
-            (render::update_available_buildings_text).run_if(in_state(AppState::InGame)),
+            (
+                render::update_level_render,
+                render::update_placements_render,
+                render::update_available_buildings,
+                render::update_solution_status,
+            )
+                .run_if(in_state(AppState::InGame)),
         )
         .add_plugins(GameInputPlugin)
         .run();

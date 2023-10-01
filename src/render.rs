@@ -42,12 +42,7 @@ pub fn get_cell_color(cell_type: CellType) -> Color {
     match cell_type {
         CellType::Grass => Color::NONE,
         CellType::Tree => Color::WHITE,
-        CellType::Lake => Color::Rgba {
-            alpha: 1.0,
-            red: 105.0 / 256.0,
-            green: 214.0 / 256.0,
-            blue: 229.0 / 256.0,
-        },
+        CellType::Lake => Color::WHITE,
         CellType::Mountain => Color::Rgba {
             alpha: 1.0,
             red: 101.0 / 256.0,
@@ -61,7 +56,7 @@ pub fn get_cell_texture(server: &Res<AssetServer>, cell_type: CellType) -> Handl
     match cell_type {
         CellType::Grass => DEFAULT_IMAGE_HANDLE.typed(),
         CellType::Tree => server.load("forest.png"),
-        CellType::Lake => DEFAULT_IMAGE_HANDLE.typed(),
+        CellType::Lake => server.load("lake.png"),
         CellType::Mountain => DEFAULT_IMAGE_HANDLE.typed(),
     }
 }

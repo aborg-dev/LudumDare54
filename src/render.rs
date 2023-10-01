@@ -1,5 +1,5 @@
 use crate::input::SelectedBuilding;
-use crate::level::{validate_solution, BuildingType, CellType, Level, Position, Solution};
+use crate::level::{validate_solution, CellType, Level, Position, Solution};
 use crate::GameState;
 use bevy::math::Vec2;
 use bevy::prelude::*;
@@ -80,7 +80,6 @@ pub fn create_level_render(
         level_render.placements.push(id);
     }
 
-    let messages = build_available_buildings_texts(&game_state.level, &game_state.solution);
     commands
         .spawn(NodeBundle {
             style: Style {
@@ -94,7 +93,7 @@ pub fn create_level_render(
             ..default()
         })
         .with_children(|parent| {
-            for (index, (building, message)) in messages.iter().enumerate() {
+            for (index, building) in game_state.level.building_count.keys().enumerate() {
                 parent
                     .spawn(NodeBundle {
                         style: Style {
@@ -128,7 +127,7 @@ pub fn create_level_render(
 
                         parent.spawn((
                             TextBundle::from_section(
-                                message.clone(),
+                                "",
                                 TextStyle {
                                     font_size: 24.0,
                                     color: Color::WHITE,
@@ -179,10 +178,8 @@ pub fn update_level_render(
 ) {
     let (_, _, mut transform) = level_render_query.single_mut();
     let level = &game_state.level;
-
     let (rows, columns) = (level.rows(), level.columns());
     let (level_width, level_height) = (columns as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
-
     transform.translation = Vec3::new(-level_width / 2.0, -level_height / 2.0, 0.0);
 }
 
@@ -213,10 +210,7 @@ pub fn update_placements_render(
     }
 }
 
-pub fn build_available_buildings_texts(
-    level: &Level,
-    solution: &Solution,
-) -> Vec<(BuildingType, String)> {
+pub fn build_available_buildings_texts(level: &Level, solution: &Solution) -> Vec<String> {
     let placed_building_count = solution.building_count();
     let mut messages = Vec::new();
     for (index, (building, total_count)) in level.building_count.iter().enumerate() {
@@ -224,9 +218,9 @@ pub fn build_available_buildings_texts(
             .get(building)
             .cloned()
             .unwrap_or_default();
-        messages.push((
-            *building,
-            format!("{}: {building:?}: {placed_count}/{total_count}", index + 1),
+        messages.push(format!(
+            "{}: {building:?}: {placed_count}/{total_count}",
+            index + 1
         ));
     }
     messages
@@ -249,9 +243,7 @@ pub fn update_available_buildings(
 ) {
     let messages = build_available_buildings_texts(&game_state.level, &game_state.solution);
     for (mut text, available_building_text_component) in available_buildings_text.iter_mut() {
-        text.sections[0].value = messages[available_building_text_component.building_index]
-            .1
-            .clone();
+        text.sections[0].value = messages[available_building_text_component.building_index].clone();
         if selected_building.number == Some(available_building_text_component.building_index) {
             text.sections[0].style.color = Color::RED;
         } else {

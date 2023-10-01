@@ -320,7 +320,7 @@ pub struct GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn first_level() -> GameLevel {
+pub fn two_takes() -> GameLevel {
     GameLevel {
         name: "two_lakes".into(),
         puzzle: Puzzle {
@@ -336,6 +336,100 @@ pub fn first_level() -> GameLevel {
     }
 }
 
+#[rustfmt::skip]
+pub fn trees_4x4() -> GameLevel {
+    GameLevel {
+        name: "trees_4x4".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               "..T.",
+               ".T..",
+               "..T.",
+               ".T..",
+            ]),
+            row_count: vec![2, 1, 2, 1],
+            col_count: vec![2, 1, 1, 2],
+        },
+    }
+}
+
+#[rustfmt::skip]
+pub fn mountain_4x4() -> GameLevel {
+    GameLevel {
+        name: "mountain_4x4".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               "..T.",
+               ".M..",
+               ".TT.",
+               "T...",
+            ]),
+            row_count: vec![1, 1, 1, 2],
+            col_count: vec![1, 2, 1, 1],
+        },
+    }
+}
+
+#[rustfmt::skip]
+pub fn lake_and_trees_4x4() -> GameLevel {
+    GameLevel {
+        name: "lake_and_trees_4x4".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               "....",
+               ".TL.",
+               "..T.",
+               "....",
+            ]),
+            row_count: vec![1, 1, 1, 2],
+            col_count: vec![1, 2, 1, 1],
+        },
+    }
+}
+
+#[rustfmt::skip]
+pub fn mountain_lakes_5x5() -> GameLevel {
+    GameLevel {
+        name: "mountain_lakes_5x5".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               ".....",
+               ".T.LT",
+               "..M..",
+               "..TL.",
+               ".....",
+            ]),
+            row_count: vec![2, 1, 1, 2, 1],
+            col_count: vec![1, 1, 2, 1, 2],
+        },
+    }
+}
+
+#[rustfmt::skip]
+pub fn twin_mountains_5x5() -> GameLevel {
+    GameLevel {
+        name: "twin_mountains_5x5".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               ".....",
+               ".....",
+               ".M.M.",
+               ".....",
+               ".....",
+            ]),
+            row_count: vec![2, 1, 0, 1, 2],
+            col_count: vec![2, 0, 2, 0, 2],
+        },
+    }
+}
+
 pub fn all_levels() -> Vec<GameLevel> {
-    vec![first_level()]
+    vec![
+        two_takes(),
+        trees_4x4(),
+        mountain_4x4(),
+        lake_and_trees_4x4(),
+        twin_mountains_5x5(),
+        mountain_lakes_5x5(),
+    ]
 }

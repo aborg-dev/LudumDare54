@@ -12,6 +12,7 @@ mod render;
 pub struct GameState {
     puzzle: level::Puzzle,
     solution: level::Solution,
+    current_level: usize,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
@@ -29,7 +30,15 @@ fn setup(mut commands: Commands, mut app_state: ResMut<NextState<AppState>>) {
     commands.insert_resource(GameState {
         puzzle: game_level.puzzle,
         solution,
+        current_level: 0,
     });
+    app_state.set(AppState::InGame);
+}
+
+fn switch_levels(mut game_state: ResMut<GameState>, mut app_state: ResMut<NextState<AppState>>) {
+    let game_level = level::all_levels().swap_remove(game_state.current_level);
+    game_state.puzzle = game_level.puzzle;
+    game_state.solution = Solution::default();
     app_state.set(AppState::InGame);
 }
 
@@ -53,6 +62,7 @@ fn main() {
         .add_systems(Update, close_on_esc)
         .add_systems(OnEnter(AppState::InGame), render::create_level_render)
         .add_systems(OnExit(AppState::InGame), render::destroy_level_render)
+        .add_systems(OnEnter(AppState::SwitchLevel), switch_levels)
         .add_systems(
             Update,
             (
@@ -60,7 +70,6 @@ fn main() {
                 render::update_placements_render,
                 render::update_buildings_required,
                 render::update_incorrect_placements,
-                render::update_solution_status,
             )
                 .run_if(in_state(AppState::InGame)),
         )

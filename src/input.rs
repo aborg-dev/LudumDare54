@@ -1,5 +1,5 @@
-use crate::level::{CellType, Placement, Position};
-use crate::{render, GameState};
+use crate::level::{CellType, Placement, Position, all_levels};
+use crate::{render, GameState, AppState};
 use bevy::math::*;
 use bevy::prelude::*;
 use bevy::window::{PrimaryWindow, Window};
@@ -19,18 +19,25 @@ impl Plugin for GameInputPlugin {
     }
 }
 
-fn keyboard_input(keys: Res<Input<KeyCode>>, mut selected_level: ResMut<SelectedLevel>) {
-    if keys.just_pressed(KeyCode::Key1) {
-        selected_level.number = Some(0);
+fn keyboard_input(
+    keys: Res<Input<KeyCode>>,
+    mut game_state: ResMut<GameState>,
+    mut selected_level: ResMut<SelectedLevel>,
+    mut app_state: ResMut<NextState<AppState>>,
+) {
+    if keys.just_pressed(KeyCode::Right) {
+        if game_state.current_level + 1 < all_levels().len() {
+            game_state.current_level += 1;
+            app_state.set(AppState::SwitchLevel);
+            println!("Going to level {}", game_state.current_level);
+        }
     }
-    if keys.just_pressed(KeyCode::Key2) {
-        selected_level.number = Some(1);
-    }
-    if keys.just_pressed(KeyCode::Key3) {
-        selected_level.number = Some(2);
-    }
-    if keys.just_pressed(KeyCode::Key4) {
-        selected_level.number = Some(3);
+    if keys.just_pressed(KeyCode::Left) {
+        if game_state.current_level > 0 {
+            game_state.current_level -= 1;
+            app_state.set(AppState::SwitchLevel);
+            println!("Going to level {}", game_state.current_level);
+        }
     }
 }
 

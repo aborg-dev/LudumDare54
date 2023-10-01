@@ -70,6 +70,9 @@ pub fn create_level_render(
     let (level_render_entity, mut level_render) = level_render_query.single_mut();
     let puzzle = &game_state.puzzle;
 
+    level_render.field.clear();
+    level_render.placements.clear();
+
     let (rows, columns) = (puzzle.rows(), puzzle.columns());
     let puzzle_height = rows as f32 * CELL_SIZE;
 
@@ -130,26 +133,6 @@ pub fn create_level_render(
         commands.entity(level_render_entity).add_child(id);
         level_render.placements.push(id);
     }
-
-    commands.spawn((
-        TextBundle::from_section(
-            "Solution status:",
-            TextStyle {
-                font_size: 24.0,
-                color: Color::WHITE,
-                ..Default::default()
-            },
-        )
-        .with_style(Style {
-            align_self: AlignSelf::FlexEnd,
-            position_type: PositionType::Absolute,
-            bottom: Val::Px(20.0),
-            left: Val::Px(20.0),
-            width: Val::Px(600.0),
-            ..default()
-        }),
-        SolutionStatusText,
-    ));
 
     let text_style = TextStyle {
         font: server.load("NotoSerif-SemiBold.ttf"),
@@ -320,13 +303,4 @@ pub fn update_incorrect_placements(
             };
         }
     }
-}
-
-// TODO: We can actually update this only if solution changes.
-pub fn update_solution_status(
-    game_state: Res<GameState>,
-    mut solution_status_text_query: Query<&mut Text, With<SolutionStatusText>>,
-) {
-    let validation_result = validate_solution(&game_state.solution, &game_state.puzzle);
-    solution_status_text_query.single_mut().sections[0].value = format!("{}", validation_result);
 }

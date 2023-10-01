@@ -16,16 +16,11 @@ pub struct GameState {
     solution: level::Solution,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, States)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
 enum AppState {
     InGame,
+    #[default]
     SwitchLevel,
-}
-
-impl Default for AppState {
-    fn default() -> Self {
-        AppState::SwitchLevel
-    }
 }
 
 fn setup(mut commands: Commands, mut app_state: ResMut<NextState<AppState>>) {

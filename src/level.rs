@@ -78,7 +78,7 @@ impl fmt::Display for Level {
             for column in 0..self.columns() {
                 write!(formatter, "{}", self.field[row][column].to_char())?
             }
-            write!(formatter, "\n")?
+            writeln!(formatter)?
         }
         write!(formatter, "{:?}", self.building_count)
     }
@@ -309,10 +309,10 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
         }
     }
 
-    return ValidationResult {
+    ValidationResult {
         building_missing,
         placement_violations,
-    };
+    }
 }
 
 #[rustfmt::skip]

@@ -52,13 +52,12 @@ fn mouse_input(
     //     None =>
     // }
     let selected_building_type = selected_building.number.map(|n| {
-        game_state
+        *game_state
             .level
             .building_count
             .keys()
             .nth(n)
             .unwrap()
-            .clone()
     });
 
     let left_just_pressed = mouse.just_pressed(MouseButton::Left);
@@ -94,7 +93,7 @@ fn mouse_input(
                         .iter_mut()
                         .find(|x| x.building == building_type && x.position.is_none())
                     {
-                        placement.position = Some(position.clone());
+                        placement.position = Some(position);
                     }
                 }
             }

@@ -9,19 +9,10 @@ use std::default::Default;
 
 pub const CELL_SIZE: f32 = 100.0;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct LevelRender {
     field: Vec<Vec<Entity>>,
     placements: Vec<Entity>,
-}
-
-impl Default for LevelRender {
-    fn default() -> Self {
-        Self {
-            field: vec![],
-            placements: vec![],
-        }
-    }
 }
 
 #[derive(Component)]
@@ -237,7 +228,7 @@ pub fn build_available_buildings_texts(
     let mut messages = Vec::new();
     for (index, (building, total_count)) in level.building_count.iter().enumerate() {
         let placed_count = placed_building_count
-            .get(&building)
+            .get(building)
             .cloned()
             .unwrap_or_default();
         messages.push((

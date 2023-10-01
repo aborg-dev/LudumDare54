@@ -51,14 +51,9 @@ fn mouse_input(
     //     Some(type) => type,
     //     None =>
     // }
-    let selected_building_type = selected_building.number.map(|n| {
-        *game_state
-            .level
-            .building_count
-            .keys()
-            .nth(n)
-            .unwrap()
-    });
+    let selected_building_type = selected_building
+        .number
+        .map(|n| *game_state.level.building_count.keys().nth(n).unwrap());
 
     let left_just_pressed = mouse.just_pressed(MouseButton::Left);
     let right_just_pressed = mouse.just_pressed(MouseButton::Right);

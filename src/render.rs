@@ -104,7 +104,8 @@ pub fn create_level_render(
     ));
 
     let text_style = TextStyle {
-        font_size: 32.0,
+        font: server.load("NotoSerif-SemiBold.ttf"),
+        font_size: 40.0,
         color: Color::WHITE,
         ..default()
     };
@@ -187,11 +188,15 @@ pub fn update_buildings_required(
     let validation_result = validate_solution(&game_state.solution, &game_state.puzzle);
     let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.columns());
 
+    let underflow_color = Color::WHITE;
+    let match_color = Color::rgb(0.4, 1.0, 0.3);
+    let overflow_color = Color::rgb(1.0, 0.3, 0.2);
+
     for r in 0..rows {
         let color = match validation_result.row_status[r] {
-            LineStatus::Underflow => Color::WHITE,
-            LineStatus::Match => Color::GREEN,
-            LineStatus::Overflow => Color::RED,
+            LineStatus::Underflow => underflow_color,
+            LineStatus::Match => match_color,
+            LineStatus::Overflow => overflow_color,
         };
         if let Some((mut text, _)) = row_buildings_required_text_query.iter_mut().find(|(_, x)| x.row == r) {
             text.sections[0].style.color = color;
@@ -200,9 +205,9 @@ pub fn update_buildings_required(
 
     for c in 0..cols {
         let color = match validation_result.col_status[c] {
-            LineStatus::Underflow => Color::WHITE,
-            LineStatus::Match => Color::GREEN,
-            LineStatus::Overflow => Color::RED,
+            LineStatus::Underflow => underflow_color,
+            LineStatus::Match => match_color,
+            LineStatus::Overflow => overflow_color,
         };
         if let Some((mut text, _)) = col_buildings_required_text_query.iter_mut().find(|(_, x)| x.col == c) {
             text.sections[0].style.color = color;

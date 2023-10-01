@@ -60,14 +60,15 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
     commands.insert_resource(GameState::new(game_level.puzzle, 0));
     commands.insert_resource(TextureHandles {
         textures: [
-            "cross.png",
+            "cross_iso.png",
             "empty.png",
-            "forest.png",
-            "house.png",
+            "forest_iso.png",
+            "house_iso.png",
             "dot.png",
-            "lake.png",
-            "mountain.png",
-            "grass_1.png",
+            "lake_iso.png",
+            "mountain_iso.png",
+            "grass_iso_1.png",
+            // "grass_isometric.png",
         ]
         .map(|name| server.load(name))
         .to_vec(),

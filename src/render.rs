@@ -3,10 +3,17 @@ use crate::GameState;
 use bevy::math::Vec2;
 use bevy::prelude::*;
 use bevy::render::texture::DEFAULT_IMAGE_HANDLE;
-use bevy::sprite::Anchor;
+use bevy::sprite::{Anchor, MaterialMesh2dBundle, Mesh2dHandle};
 use std::default::Default;
+use bevy::render::mesh::{Indices, PrimitiveTopology};
 
-pub const CELL_SIZE: f32 = 100.0;
+pub const CELL_SIZE: f32 = 200.0;
+pub const GRASS_LAYER: f32 = 0.0;
+pub const CELL_LAYER: f32 = 100.0;
+pub const CROSS_LAYER: f32 = 200.0;
+pub const TEXT_LAYER: f32 = 300.0;
+pub const DOT_LAYER: f32 = 400.0;
+pub const AXIS_LAYER: f32 = 500.0;
 
 #[derive(Component, Default)]
 pub struct LevelRender {
@@ -46,10 +53,10 @@ pub struct CellHint {
 
 pub fn get_cell_texture(server: &Res<AssetServer>, cell_type: CellType) -> Handle<Image> {
     match cell_type {
-        CellType::Grass => server.load("grass_1.png"),
-        CellType::Tree => server.load("forest.png"),
-        CellType::Lake => server.load("lake.png"),
-        CellType::Mountain => server.load("mountain.png"),
+        CellType::Grass => server.load("grass_iso_1.png"),
+        CellType::Tree => server.load("forest_iso.png"),
+        CellType::Lake => server.load("lake_iso.png"),
+        CellType::Mountain => server.load("mountain_iso.png"),
     }
 }
 
@@ -65,54 +72,56 @@ pub fn create_level_render(
     let (rows, columns) = (puzzle.rows(), puzzle.columns());
     let puzzle_height = rows as f32 * CELL_SIZE;
 
+    assert_eq!(rows, columns);
     for r in 0..rows {
         for c in 0..columns {
+            let z = ((columns - c + 1) + r) as f32 * 0.1;
+
             let texture = get_cell_texture(&server, puzzle.field[r][c]);
-            let tx = c as f32 * CELL_SIZE;
-            let ty = puzzle_height - CELL_SIZE - r as f32 * CELL_SIZE;
+
+            let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
+            let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
 
             let id = commands
                 .spawn(SpriteBundle {
                     sprite: Sprite {
                         custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
-                        anchor: Anchor::BottomLeft,
+                        anchor: Anchor::CenterLeft,
                         ..Default::default()
                     },
-                    transform: Transform::from_xyz(tx, ty, -0.1),
-                    texture: server.load("grass_1.png"),
+                    transform: Transform::from_xyz(ix, iy, z + GRASS_LAYER),
+                    texture: server.load("grass_iso_1.png"),
                     ..Default::default()
                 })
                 .id();
             commands.entity(level_render_entity).add_child(id);
 
-            ///
-            let ix = (2.0 * tx - ty) / 2.0;
-            let iy = (2.0 * ty + tx) / 2.0;
-            ///
-            let id = commands
-                .spawn(SpriteBundle {
-                    sprite: Sprite {
-                        custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
-                        anchor: Anchor::BottomLeft,
+            if puzzle.field[r][c] != CellType::Grass {
+                let id = commands
+                    .spawn(SpriteBundle {
+                        sprite: Sprite {
+                            custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
+                            anchor: Anchor::CenterLeft,
+                            ..Default::default()
+                        },
+                        transform: Transform::from_xyz(ix, iy, z + CELL_LAYER),
+                        texture,
                         ..Default::default()
-                    },
-                    transform: Transform::from_xyz(tx, ty, 0.0),
-                    texture,
-                    ..Default::default()
-                })
-                .id();
-            commands.entity(level_render_entity).add_child(id);
+                    })
+                    .id();
+                commands.entity(level_render_entity).add_child(id);
+            }
 
             let id = commands
                 .spawn((
                     SpriteBundle {
                         sprite: Sprite {
                             custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
-                            anchor: Anchor::BottomLeft,
+                            anchor: Anchor::CenterLeft,
                             ..Default::default()
                         },
-                        transform: Transform::from_xyz(tx, ty, 0.1),
-                        texture: server.load("cross.png"),
+                        transform: Transform::from_xyz(ix, iy, z + CROSS_LAYER),
+                        texture: server.load("cross_iso.png"),
                         ..Default::default()
                     },
                     IncorrectPlacement { row: r, col: c },
@@ -136,7 +145,7 @@ pub fn create_level_render(
                     },
                 )
                 .with_alignment(TextAlignment::Center),
-                transform: Transform::from_xyz(tx + CELL_SIZE * 0.2, ty + CELL_SIZE * 0.2, 0.1),
+                transform: Transform::from_xyz(ix + CELL_SIZE * 0.35, iy + CELL_SIZE * 0.3, z + TEXT_LAYER),
                 ..default()
             };
             let id = commands
@@ -153,13 +162,13 @@ pub fn create_level_render(
                                 CELL_SIZE * dot_scale,
                                 CELL_SIZE * dot_scale,
                             )),
-                            anchor: Anchor::BottomLeft,
+                            anchor: Anchor::CenterLeft,
                             ..Default::default()
                         },
                         transform: Transform::from_xyz(
-                            tx + CELL_SIZE * (1.0 - dot_scale) / 2.0,
-                            ty + CELL_SIZE * (1.0 - dot_scale) / 2.0,
-                            0.1,
+                            ix + CELL_SIZE * (1.0 - dot_scale) / 2.0,
+                            iy,
+                            z + DOT_LAYER,
                         ),
                         texture: server.load("dot.png"),
                         visibility: Visibility::Hidden,
@@ -175,10 +184,10 @@ pub fn create_level_render(
     for _ in 0..100 {
         let id = commands
             .spawn(SpriteBundle {
-                texture: server.load("house.png"),
+                texture: server.load("house_iso.png"),
                 sprite: Sprite {
                     custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
-                    anchor: Anchor::BottomLeft,
+                    anchor: Anchor::CenterLeft,
                     ..Default::default()
                 },
                 visibility: Visibility::Hidden,
@@ -197,6 +206,10 @@ pub fn create_level_render(
     };
 
     for r in 0..rows {
+        let c = columns;
+        let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
+        let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
+
         let text_bundle = Text2dBundle {
             text: Text::from_section(
                 game_state.puzzle.row_count[r].to_string(),
@@ -204,9 +217,9 @@ pub fn create_level_render(
             )
             .with_alignment(TextAlignment::Center),
             transform: Transform::from_xyz(
-                -0.2 * CELL_SIZE,
-                puzzle_height - (r as f32 + 0.5) * CELL_SIZE,
-                0.0,
+                ix + 0.35 * CELL_SIZE,
+                iy + 0.05 * CELL_SIZE,
+                AXIS_LAYER,
             ),
             ..default()
         };
@@ -217,6 +230,10 @@ pub fn create_level_render(
     }
 
     for c in 0..columns {
+        let r = 0;
+        let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
+        let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
+
         let text_bundle = Text2dBundle {
             text: Text::from_section(
                 game_state.puzzle.col_count[c].to_string(),
@@ -224,9 +241,9 @@ pub fn create_level_render(
             )
             .with_alignment(TextAlignment::Center),
             transform: Transform::from_xyz(
-                (c as f32 + 0.5) * CELL_SIZE,
-                puzzle.rows() as f32 * CELL_SIZE + 0.2 * CELL_SIZE,
-                0.0,
+                ix + 0.15 * CELL_SIZE,
+                iy + 0.3 * CELL_SIZE,
+                AXIS_LAYER,
             ),
             ..default()
         };
@@ -255,7 +272,7 @@ pub fn update_level_render(
     let puzzle = &game_state.puzzle;
     let (rows, columns) = (puzzle.rows(), puzzle.columns());
     let (puzzle_width, puzzle_height) = (columns as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
-    transform.translation = Vec3::new(-puzzle_width / 2.0, -puzzle_height / 2.0, 0.0);
+    transform.translation = Vec3::new(-puzzle_width / 2.0, 0.0, 0.0);
 }
 
 pub fn update_placements_render(
@@ -264,7 +281,7 @@ pub fn update_placements_render(
     mut sprites_query: Query<(&mut Transform, &mut Visibility)>,
 ) {
     let level_render = level_render_query.single();
-    let puzzle_height = game_state.puzzle.rows() as f32 * CELL_SIZE;
+    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.columns());
 
     for i in 0..100 {
         let id = level_render.placements[i];
@@ -272,10 +289,15 @@ pub fn update_placements_render(
             if i < game_state.solution.placements.len() {
                 let position = game_state.solution.placements[i].position;
                 *visibility = Visibility::Inherited;
+
+                let (c, r) = (position.column, position.row);
+                let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
+                let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
+
                 *transform = Transform::from_xyz(
-                    position.column as f32 * CELL_SIZE,
-                    puzzle_height - CELL_SIZE - position.row as f32 * CELL_SIZE,
-                    0.0,
+                    ix,
+                    iy,
+                    ((cols - c + 1) + r) as f32 * 1.0 + 100.0,
                 );
             } else {
                 *visibility = Visibility::Hidden;

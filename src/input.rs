@@ -64,16 +64,22 @@ fn mouse_input(
     let left_just_pressed = mouse.just_pressed(MouseButton::Left);
     let right_just_pressed = mouse.just_pressed(MouseButton::Right);
 
+    let isometric_to_orthographic = |pi: Vec2| {
+        let pi = pi - level_transform.translation.xy();
+        let po = Vec2::new(pi.x + 2.0 * pi.y, pi.x - 2.0 * pi.y);
+        po / render::CELL_SIZE
+    };
+
     if let Some(p) = window
         .cursor_position()
         .and_then(|cursor| camera.viewport_to_world_2d(camera_global_transform, cursor))
-        .map(|cursor| (cursor - level_transform.translation.xy()) / render::CELL_SIZE)
+        .map(isometric_to_orthographic)
     {
         let lower_bound = Vec2::new(0.0, 0.0);
         let upper_bound = Vec2::new(columns as f32, rows as f32);
         if p.cmpge(lower_bound).all() && p.cmplt(upper_bound).all() {
             let position = Position {
-                row: rows - 1 - p.y as usize,
+                row: p.y as usize,
                 column: p.x as usize,
             };
             let r = position.row;

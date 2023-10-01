@@ -258,7 +258,6 @@ pub fn count_diagnoal_houses(
                 let ncol = ncol as usize;
                 if has_house[nrow][ncol] {
                     count += 1;
-                    break;
                 }
             }
         }

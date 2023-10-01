@@ -14,6 +14,20 @@ pub struct GameState {
     puzzle: level::Puzzle,
     solution: level::Solution,
     current_level: usize,
+    hints: Vec<Vec<bool>>,
+}
+
+impl GameState {
+    pub fn new(puzzle: level::Puzzle, current_level: usize) -> Self {
+        let rows = puzzle.rows();
+        let cols = puzzle.columns();
+        Self {
+            puzzle,
+            solution: Solution::default(),
+            current_level,
+            hints: vec![vec![false; cols]; rows],
+        }
+    }
 }
 
 #[derive(Resource)]
@@ -31,26 +45,22 @@ enum AppState {
 fn setup(mut commands: Commands, server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
     let game_level = level::all_levels().swap_remove(0);
-    commands.insert_resource(GameState {
-        puzzle: game_level.puzzle,
-        solution: Solution::default(),
-        current_level: 0,
-    });
+    commands.insert_resource(GameState::new(game_level.puzzle, 0));
     commands.insert_resource(TextureHandles {
         textures: ["house.png", "cross.png"]
             .map(|name| server.load(name))
             .to_vec(),
     });
 
-    commands.spawn(AudioBundle {
-        source: server.load("ambient.mp3"),
-        settings: PlaybackSettings {
-            mode: PlaybackMode::Loop,
-            volume: Volume::new_relative(0.1),
-            ..default()
-        },
-        ..default()
-    });
+    // commands.spawn(AudioBundle {
+    //     source: server.load("ambient.mp3"),
+    //     settings: PlaybackSettings {
+    //         mode: PlaybackMode::Loop,
+    //         volume: Volume::new_relative(0.1),
+    //         ..default()
+    //     },
+    //     ..default()
+    // });
 }
 
 fn switch_levels(
@@ -62,6 +72,7 @@ fn switch_levels(
     let game_level = level::all_levels().swap_remove(game_state.current_level);
     game_state.puzzle = game_level.puzzle;
     game_state.solution = Solution::default();
+    game_state.hints = vec![vec![false; game_state.puzzle.columns()]; game_state.puzzle.rows()];
     app_state.set(AppState::InGame);
 }
 
@@ -93,6 +104,7 @@ fn main() {
                 render::update_placements_render,
                 render::update_buildings_required,
                 render::update_incorrect_placements,
+                render::update_cell_hints,
             )
                 .run_if(in_state(AppState::InGame)),
         )

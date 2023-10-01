@@ -32,6 +32,12 @@ pub struct IncorrectPlacement {
     col: usize,
 }
 
+#[derive(Component)]
+pub struct CellHint {
+    row: usize,
+    col: usize,
+}
+
 pub fn get_cell_color(cell_type: CellType) -> Color {
     match cell_type {
         CellType::Grass => Color::Rgba {
@@ -108,6 +114,24 @@ pub fn create_level_render(
                         ..Default::default()
                     },
                     IncorrectPlacement { row: r, col: c },
+                ))
+                .id();
+            commands.entity(level_render_entity).add_child(id);
+
+            let id = commands
+                .spawn((
+                    SpriteBundle {
+                        sprite: Sprite {
+                            custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
+                            anchor: Anchor::BottomLeft,
+                            ..Default::default()
+                        },
+                        transform: Transform::from_xyz(tx, ty, 0.1),
+                        texture: server.load("cross.png"),
+                        visibility: Visibility::Hidden,
+                        ..Default::default()
+                    },
+                    CellHint { row: r, col: c },
                 ))
                 .id();
             commands.entity(level_render_entity).add_child(id);
@@ -212,14 +236,13 @@ pub fn update_placements_render(
         let id = level_render.placements[i];
         if let Ok((mut transform, mut visibility)) = sprites_query.get_mut(id) {
             if i < game_state.solution.placements.len() {
-                let placement = &game_state.solution.placements[i];
+                let position = game_state.solution.placements[i].position;
                 *visibility = Visibility::Inherited;
                 *transform = Transform::from_xyz(
-                    placement.position.column as f32 * CELL_SIZE,
-                    puzzle_height - CELL_SIZE - placement.position.row as f32 * CELL_SIZE,
+                    position.column as f32 * CELL_SIZE,
+                    puzzle_height - CELL_SIZE - position.row as f32 * CELL_SIZE,
                     0.0,
                 );
-                // println!("Showing house {i}: {:?}, {:?}", *visibility, *transform);
             } else {
                 *visibility = Visibility::Hidden;
             }
@@ -300,6 +323,26 @@ pub fn update_incorrect_placements(
             {
                 *visibility = Visibility::Inherited;
             };
+        }
+    }
+}
+
+pub fn update_cell_hints(
+    game_state: Res<GameState>,
+    mut cell_hint_query: Query<(&mut Visibility, &CellHint)>,
+) {
+    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.columns());
+    for r in 0..rows {
+        for c in 0..cols {
+            let (mut visibility, _) = cell_hint_query
+                .iter_mut()
+                .find(|(_, x)| x.row == r && x.col == c)
+                .unwrap();
+            *visibility = Visibility::Hidden;
+
+            if game_state.hints[r][c] {
+                *visibility = Visibility::Inherited;
+            }
         }
     }
 }

@@ -86,30 +86,39 @@ fn mouse_input(
                     },
                     ..default()
                 });
+                game_state.hints[r][c] = false;
             }
 
             // Remove placements at this position.
-            if right_just_pressed
-                && game_state
+            if right_just_pressed {
+                if let Some(index) = game_state
                     .solution
                     .placements
                     .iter()
-                    .any(|x| x.position == position)
-            {
-                game_state
-                    .solution
-                    .placements
-                    .retain(|x| x.position != position);
-
-                commands.spawn(AudioBundle {
-                    source: server.load("remove.wav"),
-                    settings: PlaybackSettings {
-                        volume: Volume::new_relative(0.5),
-                        speed: 1.2,
+                    .position(|x| x.position == position)
+                {
+                    game_state.solution.placements.remove(index);
+                    commands.spawn(AudioBundle {
+                        source: server.load("remove.wav"),
+                        settings: PlaybackSettings {
+                            volume: Volume::new_relative(0.5),
+                            speed: 1.2,
+                            ..default()
+                        },
                         ..default()
-                    },
-                    ..default()
-                });
+                    });
+                } else {
+                    commands.spawn(AudioBundle {
+                        source: server.load("remove.wav"),
+                        settings: PlaybackSettings {
+                            volume: Volume::new_relative(0.5),
+                            speed: 1.2,
+                            ..default()
+                        },
+                        ..default()
+                    });
+                    game_state.hints[r][c] ^= true;
+                }
             }
         }
     }

@@ -73,24 +73,23 @@ fn mouse_input(
                     .solution
                     .placements
                     .iter()
-                    .all(|x| !x.position.is_some_and(|x| x == position))
+                    .all(|x| !(x.position == position))
             {
                 if let Some(building_type) = selected_building_type {
                     if let Some(&mut ref mut placement) = game_state
                         .solution
                         .placements
                         .iter_mut()
-                        .find(|x| x.building == building_type && x.position.is_none())
+                        .find(|x| x.building == building_type)
                     {
-                        placement.position = Some(position);
+                        placement.position = position;
                     }
                 }
             }
 
             if right_just_pressed {
                 for placement in &mut game_state.solution.placements.iter_mut() {
-                    if placement.position.is_some() && placement.position.unwrap() == position {
-                        placement.position = None;
+                    if placement.position == position {
                         break;
                     }
                 }

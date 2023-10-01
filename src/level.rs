@@ -127,7 +127,7 @@ pub struct Position {
 #[derive(Debug)]
 pub struct Placement {
     pub building: BuildingType,
-    pub position: Option<Position>,
+    pub position: Position,
 }
 
 #[derive(Debug)]
@@ -161,7 +161,7 @@ impl Solution {
                 }
                 solution.placements.push(Placement {
                     building: BuildingType::from_char(*c),
-                    position: Some(Position { row, column }),
+                    position: Position { row, column },
                 })
             }
         }
@@ -212,14 +212,13 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
 
     let mut has_building = vec![vec![None; puzzle.columns()]; puzzle.rows()];
     for (index, placement) in solution.placements.iter().enumerate() {
-        if let Some(position) = &placement.position {
-            has_building[position.row][position.column] = Some(placement.building);
-        } else {
-            placement_violations.push(PlacementViolation {
-                building_index: index,
-                violation: ViolationType::NotPlaced,
-            });
-        }
+        has_building[placement.position.row][placement.position.column] = Some(placement.building);
+        // } else {
+        //     placement_violations.push(PlacementViolation {
+        //         building_index: index,
+        //         violation: ViolationType::NotPlaced,
+        //     });
+        // }
     }
 
     // Check that houses have grass nearby.
@@ -227,10 +226,7 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
         if !matches!(placement.building, BuildingType::House) {
             continue;
         }
-        if placement.position.is_none() {
-            continue;
-        }
-        let position = placement.position.as_ref().unwrap();
+        let position = placement.position;
 
         let mut found_grass = false;
         for d in 0..4 {
@@ -261,10 +257,7 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
         if !matches!(placement.building, BuildingType::Hermit) {
             continue;
         }
-        if placement.position.is_none() {
-            continue;
-        }
-        let position = placement.position.as_ref().unwrap();
+        let position = placement.position;
 
         let mut found_edge = false;
         for d in 0..4 {
@@ -296,10 +289,7 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
         if !matches!(placement.building, BuildingType::Trash) {
             continue;
         }
-        if placement.position.is_none() {
-            continue;
-        }
-        let position = placement.position.as_ref().unwrap();
+        let position = placement.position;
 
         let mut found_house = false;
         for d in 0..4 {

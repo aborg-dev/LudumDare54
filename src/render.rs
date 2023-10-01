@@ -32,6 +32,35 @@ pub struct IncorrectPlacement {
     col: usize,
 }
 
+pub fn get_cell_color(cell_type: CellType) -> Color {
+    match cell_type {
+        CellType::Grass => Color::Rgba {
+            alpha: 1.0,
+            red: 173.0 / 256.0,
+            green: 242.0 / 256.0,
+            blue: 133.0 / 256.0,
+        },
+        CellType::Tree => Color::Rgba {
+            alpha: 1.0,
+            red: 19.0 / 256.0,
+            green: 82.0 / 256.0,
+            blue: 41.0 / 256.0,
+        },
+        CellType::Lake => Color::Rgba {
+            alpha: 1.0,
+            red: 105.0 / 256.0,
+            green: 214.0 / 256.0,
+            blue: 229.0 / 256.0,
+        },
+        CellType::Mountain => Color::Rgba {
+            alpha: 1.0,
+            red: 101.0 / 256.0,
+            green: 119.0 / 256.0,
+            blue: 121.0 / 256.0,
+        },
+    }
+}
+
 pub fn create_level_render(
     mut commands: Commands,
     game_state: Res<GameState>,
@@ -45,16 +74,7 @@ pub fn create_level_render(
     level_render.field.resize(rows, vec![]);
     for r in 0..rows {
         for c in 0..columns {
-            let color = if puzzle.field[r][c] == CellType::Grass {
-                Color::Rgba {
-                    alpha: 1.0,
-                    blue: 133.0 / 256.0,
-                    green: 242.0 / 256.0,
-                    red: 173.0 / 256.0,
-                }
-            } else {
-                Color::NONE
-            };
+            let color = get_cell_color(puzzle.field[r][c]);
             let id = commands
                 .spawn(SpriteBundle {
                     sprite: Sprite {

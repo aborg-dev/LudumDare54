@@ -67,8 +67,12 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
             "dot.png",
             "lake_iso.png",
             "mountain_iso.png",
-            "grass_iso_1.png",
-            // "grass_isometric.png",
+            "grass_iso_dark_1.png",
+            "grass_iso_dark_2.png",
+            "grass_iso_dark_3.png",
+            "grass_iso_light_1.png",
+            "grass_iso_light_2.png",
+            "grass_iso_light_3.png",
         ]
         .map(|name| server.load(name))
         .to_vec(),

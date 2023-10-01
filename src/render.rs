@@ -82,6 +82,11 @@ pub fn create_level_render(
             let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
             let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
 
+            let grass_texture = if (r + c) % 2 == 0 {
+                server.load("grass_iso_dark_2.png")
+            } else {
+                server.load("grass_iso_light_2.png")
+            };
             let id = commands
                 .spawn(SpriteBundle {
                     sprite: Sprite {
@@ -90,7 +95,7 @@ pub fn create_level_render(
                         ..Default::default()
                     },
                     transform: Transform::from_xyz(ix, iy, z + GRASS_LAYER),
-                    texture: server.load("grass_iso_1.png"),
+                    texture: grass_texture,
                     ..Default::default()
                 })
                 .id();

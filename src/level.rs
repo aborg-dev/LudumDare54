@@ -53,12 +53,12 @@ impl CellType {
 }
 
 #[derive(Debug)]
-pub struct Level {
+pub struct Puzzle {
     pub building_count: BTreeMap<BuildingType, usize>,
     pub field: Vec<Vec<CellType>>,
 }
 
-impl Level {
+impl Puzzle {
     pub fn rows(&self) -> usize {
         self.field.len()
     }
@@ -72,7 +72,7 @@ impl Level {
     }
 }
 
-impl fmt::Display for Level {
+impl fmt::Display for Puzzle {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         for row in 0..self.rows() {
             for column in 0..self.columns() {
@@ -106,9 +106,9 @@ pub struct Solution {
 }
 
 impl Solution {
-    pub fn empty_from_level(level: &Level) -> Solution {
+    pub fn empty_from_puzzle(puzzle: &Puzzle) -> Solution {
         let mut placements = Vec::new();
-        for (building, count) in &level.building_count {
+        for (building, count) in &puzzle.building_count {
             for _ in 0..*count {
                 placements.push(Placement {
                     building: *building,
@@ -187,13 +187,13 @@ impl fmt::Display for ValidationResult {
     }
 }
 
-pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult {
+pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResult {
     let mut placement_violations = Vec::new();
 
     // Check that we have the right count of each building.
-    let building_missing = level.building_count != solution.building_count();
+    let building_missing = puzzle.building_count != solution.building_count();
 
-    let mut has_building = vec![vec![None; level.columns()]; level.rows()];
+    let mut has_building = vec![vec![None; puzzle.columns()]; puzzle.rows()];
     for (index, placement) in solution.placements.iter().enumerate() {
         if let Some(position) = &placement.position {
             has_building[position.row][position.column] = Some(placement.building);
@@ -219,13 +219,13 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
         for d in 0..4 {
             let nrow = position.row as i32 + DROW[d];
             let ncol = position.column as i32 + DCOL[d];
-            if !level.is_valid(nrow, ncol) {
+            if !puzzle.is_valid(nrow, ncol) {
                 continue;
             }
 
             let nrow = nrow as usize;
             let ncol = ncol as usize;
-            if has_building[nrow][ncol].is_none() && level.field[nrow][ncol] == CellType::Grass {
+            if has_building[nrow][ncol].is_none() && puzzle.field[nrow][ncol] == CellType::Grass {
                 found_grass = true;
                 break;
             }
@@ -253,14 +253,14 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
         for d in 0..4 {
             let nrow = position.row as i32 + DROW[d];
             let ncol = position.column as i32 + DCOL[d];
-            if !level.is_valid(nrow, ncol) {
+            if !puzzle.is_valid(nrow, ncol) {
                 found_edge = true;
                 break;
             }
 
             let nrow = nrow as usize;
             let ncol = ncol as usize;
-            if level.field[nrow][ncol] == CellType::Hole {
+            if puzzle.field[nrow][ncol] == CellType::Hole {
                 found_edge = true;
                 break;
             }
@@ -288,7 +288,7 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
         for d in 0..4 {
             let nrow = position.row as i32 + DROW[d];
             let ncol = position.column as i32 + DCOL[d];
-            if !level.is_valid(nrow, ncol) {
+            if !puzzle.is_valid(nrow, ncol) {
                 continue;
             }
 
@@ -316,7 +316,7 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
 
 pub struct GameLevel {
     pub name: String,
-    pub level: Level,
+    pub puzzle: Puzzle,
     pub solution: Solution,
 }
 
@@ -324,7 +324,7 @@ pub struct GameLevel {
 pub fn first_level() -> GameLevel {
     GameLevel {
         name: "trash_and_houses".into(),
-        level: Level {
+        puzzle: Puzzle {
             building_count: BTreeMap::from([(BuildingType::House, 5), (BuildingType::Trash, 1)]),
             field: field_from_size(3, 3),
         },
@@ -340,7 +340,7 @@ pub fn first_level() -> GameLevel {
 pub fn second_level() -> GameLevel {
     GameLevel {
         name: "hermits_and_houses".into(),
-        level: Level {
+        puzzle: Puzzle {
             building_count: BTreeMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 4)]),
             field: field_from_size(3, 3),
         },
@@ -354,14 +354,14 @@ pub fn second_level() -> GameLevel {
 
 #[rustfmt::skip]
 pub fn third_level() -> GameLevel {
-    let mut level = Level {
+    let mut puzzle = Puzzle {
         building_count: BTreeMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 3)]),
         field: field_from_size(3, 3),
     };
-    level.field[0][0] = CellType::Hole;
+    puzzle.field[0][0] = CellType::Hole;
     GameLevel {
         name: "with_hole".into(),
-        level,
+        puzzle,
         solution: Solution::parse(vec![
             "x1H",
             "1g1",

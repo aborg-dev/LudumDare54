@@ -1,5 +1,5 @@
 use crate::input::SelectedBuilding;
-use crate::level::{validate_solution, CellType, Level, Position, Solution};
+use crate::level::{validate_solution, CellType, Position, Puzzle, Solution};
 use crate::GameState;
 use bevy::math::Vec2;
 use bevy::prelude::*;
@@ -30,13 +30,13 @@ pub fn create_level_render(
     server: Res<AssetServer>,
 ) {
     let (level_render_entity, mut level_render) = level_render_query.single_mut();
-    let level = &game_state.level;
+    let puzzle = &game_state.puzzle;
 
-    let (rows, columns) = (level.rows(), level.columns());
+    let (rows, columns) = (puzzle.rows(), puzzle.columns());
     level_render.field.resize(rows, vec![]);
     for r in 0..rows {
         for c in 0..columns {
-            let color = if level.field[r][c] == CellType::Grass {
+            let color = if puzzle.field[r][c] == CellType::Grass {
                 Color::Rgba {
                     alpha: 1.0,
                     blue: 133.0 / 256.0,
@@ -93,7 +93,7 @@ pub fn create_level_render(
             ..default()
         })
         .with_children(|parent| {
-            for (index, building) in game_state.level.building_count.keys().enumerate() {
+            for (index, building) in game_state.puzzle.building_count.keys().enumerate() {
                 parent
                     .spawn(NodeBundle {
                         style: Style {
@@ -177,10 +177,10 @@ pub fn update_level_render(
     mut level_render_query: Query<(Entity, &LevelRender, &mut Transform)>,
 ) {
     let (_, _, mut transform) = level_render_query.single_mut();
-    let level = &game_state.level;
-    let (rows, columns) = (level.rows(), level.columns());
-    let (level_width, level_height) = (columns as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
-    transform.translation = Vec3::new(-level_width / 2.0, -level_height / 2.0, 0.0);
+    let puzzle = &game_state.puzzle;
+    let (rows, columns) = (puzzle.rows(), puzzle.columns());
+    let (puzzle_width, puzzle_height) = (columns as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
+    transform.translation = Vec3::new(-puzzle_width / 2.0, -puzzle_height / 2.0, 0.0);
 }
 
 pub fn update_placements_render(
@@ -210,10 +210,10 @@ pub fn update_placements_render(
     }
 }
 
-pub fn build_available_buildings_texts(level: &Level, solution: &Solution) -> Vec<String> {
+pub fn build_available_buildings_texts(puzzle: &Puzzle, solution: &Solution) -> Vec<String> {
     let placed_building_count = solution.building_count();
     let mut messages = Vec::new();
-    for (index, (building, total_count)) in level.building_count.iter().enumerate() {
+    for (index, (building, total_count)) in puzzle.building_count.iter().enumerate() {
         let placed_count = placed_building_count
             .get(building)
             .cloned()
@@ -231,7 +231,7 @@ pub fn update_solution_status(
     game_state: Res<GameState>,
     mut solution_status_text_query: Query<&mut Text, With<SolutionStatusText>>,
 ) {
-    let validation_result = validate_solution(&game_state.solution, &game_state.level);
+    let validation_result = validate_solution(&game_state.solution, &game_state.puzzle);
     solution_status_text_query.single_mut().sections[0].value = format!("{}", validation_result);
 }
 
@@ -241,7 +241,7 @@ pub fn update_available_buildings(
     selected_building: Res<SelectedBuilding>,
     mut available_buildings_text: Query<(&mut Text, &AvailableBuildingsText)>,
 ) {
-    let messages = build_available_buildings_texts(&game_state.level, &game_state.solution);
+    let messages = build_available_buildings_texts(&game_state.puzzle, &game_state.solution);
     for (mut text, available_building_text_component) in available_buildings_text.iter_mut() {
         text.sections[0].value = messages[available_building_text_component.building_index].clone();
         if selected_building.number == Some(available_building_text_component.building_index) {

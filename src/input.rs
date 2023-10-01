@@ -45,7 +45,7 @@ fn mouse_input(
     let level_transform = level_render_query.single();
     let (camera, camera_global_transform) = camera_query.single();
     let window = window_query.single();
-    let (rows, columns) = (game_state.level.rows(), game_state.level.columns());
+    let (rows, columns) = (game_state.puzzle.rows(), game_state.puzzle.columns());
 
     // match selected_building.number {
     //     Some(type) => type,
@@ -53,7 +53,7 @@ fn mouse_input(
     // }
     let selected_building_type = selected_building
         .number
-        .map(|n| *game_state.level.building_count.keys().nth(n).unwrap());
+        .map(|n| *game_state.puzzle.building_count.keys().nth(n).unwrap());
 
     let left_just_pressed = mouse.just_pressed(MouseButton::Left);
     let right_just_pressed = mouse.just_pressed(MouseButton::Right);
@@ -74,7 +74,7 @@ fn mouse_input(
             let c = position.column;
 
             if left_just_pressed
-                && game_state.level.field[r][c] != CellType::Hole
+                && game_state.puzzle.field[r][c] != CellType::Hole
                 && game_state
                     .solution
                     .placements

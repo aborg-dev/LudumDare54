@@ -12,7 +12,7 @@ mod render;
 
 #[derive(Resource)]
 pub struct GameState {
-    level: level::Level,
+    puzzle: level::Puzzle,
     solution: level::Solution,
 }
 
@@ -27,9 +27,9 @@ fn setup(mut commands: Commands, mut app_state: ResMut<NextState<AppState>>) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn((render::LevelRender::default(), SpatialBundle::default()));
     let game_level = level::all_levels().swap_remove(2);
-    let solution = Solution::empty_from_level(&game_level.level);
+    let solution = Solution::empty_from_puzzle(&game_level.puzzle);
     commands.insert_resource(GameState {
-        level: game_level.level,
+        puzzle: game_level.puzzle,
         solution,
     });
     app_state.set(AppState::InGame);
@@ -40,7 +40,7 @@ fn main() {
         println!(
             "{}: {:?}",
             game_level.name,
-            validate_solution(&game_level.solution, &game_level.level)
+            validate_solution(&game_level.solution, &game_level.puzzle)
         );
     }
 

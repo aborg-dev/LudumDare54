@@ -314,49 +314,58 @@ pub fn validate_solution(solution: &Solution, level: &Level) -> ValidationResult
     }
 }
 
+pub struct GameLevel {
+    pub name: String,
+    pub level: Level,
+    pub solution: Solution,
+}
+
 #[rustfmt::skip]
-pub fn first_level() -> (Level, Solution) {
-    (
-        Level {
+pub fn first_level() -> GameLevel {
+    GameLevel {
+        name: "trash_and_houses".into(),
+        level: Level {
             building_count: BTreeMap::from([(BuildingType::House, 5), (BuildingType::Trash, 1)]),
             field: field_from_size(3, 3),
         },
-        Solution::parse(vec![
+        solution: Solution::parse(vec![
            "1gT", 
            "11g",
            "g11",
         ]),
-    )
+    }
 }
 
 #[rustfmt::skip]
-pub fn second_level() -> (Level, Solution) {
-    (
-        Level {
+pub fn second_level() -> GameLevel {
+    GameLevel {
+        name: "hermits_and_houses".into(),
+        level: Level {
             building_count: BTreeMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 4)]),
             field: field_from_size(3, 3),
         },
-        Solution::parse(vec![
+        solution: Solution::parse(vec![
            "H1H", 
            "1g1",
            "H1H",
         ]),
-    )
+    }
 }
 
 #[rustfmt::skip]
-pub fn third_level() -> (Level, Solution) {
+pub fn third_level() -> GameLevel {
     let mut level = Level {
         building_count: BTreeMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 3)]),
         field: field_from_size(3, 3),
     };
     level.field[0][0] = CellType::Hole;
-    (
+    GameLevel {
+        name: "with_hole".into(),
         level,
-        Solution::parse(vec![
+        solution: Solution::parse(vec![
             "x1H",
             "1g1",
             "H1H",
         ]),
-    )
+    }
 }

@@ -26,16 +26,23 @@ enum AppState {
 fn setup(mut commands: Commands, mut app_state: ResMut<NextState<AppState>>) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn((render::LevelRender::default(), SpatialBundle::default()));
-    let (level, _) = level::third_level();
-    let solution = Solution::empty_from_level(&level);
-    commands.insert_resource(GameState { level, solution });
+    let game_level = level::third_level();
+    let solution = Solution::empty_from_level(&game_level.level);
+    commands.insert_resource(GameState {
+        level: game_level.level,
+        solution,
+    });
     app_state.set(AppState::InGame);
 }
 
 fn main() {
-    let levels = vec![level::first_level(), level::second_level()];
-    for (level, solution) in levels {
-        println!("{}: {:?}", level, validate_solution(&solution, &level));
+    let game_levels = vec![level::first_level(), level::second_level()];
+    for game_level in game_levels {
+        println!(
+            "{}: {:?}",
+            game_level.name,
+            validate_solution(&game_level.solution, &game_level.level)
+        );
     }
 
     App::new()

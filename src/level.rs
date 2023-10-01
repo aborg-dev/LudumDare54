@@ -40,14 +40,28 @@ impl BuildingType {
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum CellType {
     Grass,
-    Hole,
+    Tree,
+    Lake,
+    Mountain,
 }
 
 impl CellType {
     pub fn to_char(self) -> char {
         match self {
-            CellType::Grass => 'g',
-            CellType::Hole => 'x',
+            CellType::Grass => '.',
+            CellType::Tree => 'T',
+            CellType::Lake => 'L',
+            CellType::Mountain => 'M',
+        }
+    }
+
+    pub fn from_char(c: u8) -> CellType {
+        match c {
+            b'.' => CellType::Grass,
+            b'T' => CellType::Tree,
+            b'L' => CellType::Lake,
+            b'M' => CellType::Mountain,
+            _ => panic!("Unknown cell type: {}", c),
         }
     }
 }
@@ -86,6 +100,20 @@ impl fmt::Display for Puzzle {
 
 pub fn field_from_size(rows: usize, columns: usize) -> Vec<Vec<CellType>> {
     vec![vec![CellType::Grass; columns]; rows]
+}
+
+pub fn parse_field(s: Vec<&str>) -> Vec<Vec<CellType>> {
+    let mut field = field_from_size(s.len(), s[0].len());
+    for (row, line) in s.iter().enumerate() {
+        for (column, c) in line.as_bytes().iter().enumerate() {
+            // Skip cells with house objects.
+            if [b'x'].contains(c) {
+                continue;
+            }
+            field[row][column] = CellType::from_char(*c);
+        }
+    }
+    field
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -260,7 +288,7 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
 
             let nrow = nrow as usize;
             let ncol = ncol as usize;
-            if puzzle.field[nrow][ncol] == CellType::Hole {
+            if puzzle.field[nrow][ncol] == CellType::Tree {
                 found_edge = true;
                 break;
             }
@@ -321,6 +349,27 @@ pub struct GameLevel {
 }
 
 #[rustfmt::skip]
+pub fn new_first_level() -> GameLevel {
+    GameLevel {
+        name: "two_lakes".into(),
+        puzzle: Puzzle {
+            building_count: BTreeMap::new(),
+            field: parse_field(vec![
+               "....",
+               "L.L.",
+               "....",
+               "..T.",
+            ]),
+        },
+        solution: Solution::parse(vec![
+           "1gT", 
+           "11g",
+           "g11",
+        ]),
+    }
+}
+
+#[rustfmt::skip]
 pub fn first_level() -> GameLevel {
     GameLevel {
         name: "trash_and_houses".into(),
@@ -358,7 +407,7 @@ pub fn third_level() -> GameLevel {
         building_count: BTreeMap::from([(BuildingType::House, 4), (BuildingType::Hermit, 3)]),
         field: field_from_size(3, 3),
     };
-    puzzle.field[0][0] = CellType::Hole;
+    puzzle.field[0][0] = CellType::Tree;
     GameLevel {
         name: "with_hole".into(),
         puzzle,

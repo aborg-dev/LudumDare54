@@ -74,7 +74,7 @@ fn mouse_input(
             let c = position.column;
 
             if left_just_pressed
-                && game_state.puzzle.field[r][c] != CellType::Hole
+                && game_state.puzzle.field[r][c] != CellType::Tree
                 && game_state
                     .solution
                     .placements

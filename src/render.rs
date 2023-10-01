@@ -33,6 +33,12 @@ pub struct IncorrectPlacement {
 }
 
 #[derive(Component)]
+pub struct ConstraintViolationRender {
+    row: usize,
+    col: usize,
+}
+
+#[derive(Component)]
 pub struct CellHint {
     row: usize,
     col: usize,
@@ -123,6 +129,30 @@ pub fn create_level_render(
                     },
                     IncorrectPlacement { row: r, col: c },
                 ))
+                .id();
+            commands.entity(level_render_entity).add_child(id);
+
+            let constraint_text = match game_state.puzzle.field[r][c] {
+                CellType::Lake => "3",
+                CellType::Mountain => "2",
+                _ => "",
+            };
+            let text_bundle = Text2dBundle {
+                text: Text::from_section(
+                    constraint_text,
+                    TextStyle {
+                        font: server.load("NotoSerif-SemiBold.ttf"),
+                        font_size: 32.0,
+                        color: Color::GRAY,
+                        ..default()
+                    },
+                )
+                .with_alignment(TextAlignment::Center),
+                transform: Transform::from_xyz(tx + CELL_SIZE * 0.2, ty + CELL_SIZE * 0.2, 0.1),
+                ..default()
+            };
+            let id = commands
+                .spawn((text_bundle, ConstraintViolationRender { row: r, col: c }))
                 .id();
             commands.entity(level_render_entity).add_child(id);
 
@@ -316,9 +346,14 @@ pub fn update_buildings_required(
 pub fn update_incorrect_placements(
     game_state: Res<GameState>,
     mut incorrect_placements_query: Query<(&mut Visibility, &IncorrectPlacement)>,
+    mut constraint_violations_query: Query<(&mut Text, &ConstraintViolationRender)>,
 ) {
     let validation_result = validate_solution(&game_state.solution, &game_state.puzzle);
     let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.columns());
+
+    let underflow_color = Color::GRAY;
+    let match_color = Color::rgb(0.2, 0.8, 0.2);
+    let overflow_color = Color::rgb(1.0, 0.3, 0.2);
 
     for r in 0..rows {
         for c in 0..cols {
@@ -332,12 +367,30 @@ pub fn update_incorrect_placements(
                 let placement = &game_state.solution.placements[x.house_index];
                 placement.position == Position { row: r, column: c }
             };
-            if let Some(x) = validation_result
+            if let Some(_) = validation_result
                 .placement_violations
                 .iter()
                 .find(matches_position)
             {
                 *visibility = Visibility::Inherited;
+            };
+
+            let (mut text, _) = constraint_violations_query
+                .iter_mut()
+                .find(|(_, x)| x.row == r && x.col == c)
+                .unwrap();
+            let matches_position =
+                |x: &&ConstraintViolation| x.position == Position { row: r, column: c };
+            if let Some(result) = validation_result
+                .constraint_violations
+                .iter()
+                .find(matches_position)
+            {
+                text.sections[0].style.color = match result.violation {
+                    ConstraintViolationType::Underflow => underflow_color,
+                    ConstraintViolationType::Match => match_color,
+                    ConstraintViolationType::Overflow => overflow_color,
+                };
             };
         }
     }

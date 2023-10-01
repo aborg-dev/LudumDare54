@@ -423,13 +423,51 @@ pub fn twin_mountains_5x5() -> GameLevel {
     }
 }
 
+#[rustfmt::skip]
+pub fn lonely_mountain_5x5() -> GameLevel {
+    GameLevel {
+        name: "lonely_mountain_5x5".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               ".....",
+               ".L...",
+               "...L.",
+               ".M...",
+               ".....",
+            ]),
+            row_count: vec![1, 2, 2, 2, 2],
+            col_count: vec![2, 1, 2, 2, 2],
+        },
+    }
+}
+
+#[rustfmt::skip]
+pub fn mega_lakes_5x5() -> GameLevel {
+    GameLevel {
+        name: "meka_lakes_5x5".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               ".....",
+               ".L.L.",
+               ".....",
+               ".L.L.",
+               ".....",
+            ]),
+            row_count: vec![1, 2, 2, 1, 2],
+            col_count: vec![2, 1, 2, 1, 2],
+        },
+    }
+}
+
 pub fn all_levels() -> Vec<GameLevel> {
     vec![
+        mega_lakes_5x5(),
+        lonely_mountain_5x5(),
+        mountain_lakes_5x5(),
         two_takes(),
         trees_4x4(),
         mountain_4x4(),
         lake_and_trees_4x4(),
         twin_mountains_5x5(),
-        mountain_lakes_5x5(),
     ]
 }

@@ -183,12 +183,10 @@ pub fn destroy_level_render(
     mut commands: Commands,
     mut level_render_query: Query<(Entity, &mut LevelRender)>,
 ) {
-    let (level_render_entity, mut level_render) = level_render_query.single_mut();
+    let (level_render_entity, _) = level_render_query.single_mut();
     commands.entity(level_render_entity).despawn_descendants();
     commands.entity(level_render_entity).clear_children();
-
-    level_render.field.clear();
-    level_render.placements.clear();
+    commands.entity(level_render_entity).despawn();
 }
 
 pub fn update_level_render(
@@ -221,6 +219,7 @@ pub fn update_placements_render(
                     puzzle_height - CELL_SIZE - placement.position.row as f32 * CELL_SIZE,
                     0.0,
                 );
+                // println!("Showing house {i}: {:?}, {:?}", *visibility, *transform);
             } else {
                 *visibility = Visibility::Hidden;
             }

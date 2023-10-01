@@ -16,6 +16,11 @@ pub struct GameState {
     current_level: usize,
 }
 
+#[derive(Resource)]
+pub struct TextureHandles {
+    textures: Vec<Handle<u32>>,
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
 enum AppState {
     InGame,
@@ -23,21 +28,19 @@ enum AppState {
     SwitchLevel,
 }
 
-fn setup(
-    mut commands: Commands,
-    mut app_state: ResMut<NextState<AppState>>,
-    server: Res<AssetServer>,
-) {
+fn setup(mut commands: Commands, server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
-    commands.spawn((render::LevelRender::default(), SpatialBundle::default()));
     let game_level = level::all_levels().swap_remove(0);
-    let solution = Solution::default();
     commands.insert_resource(GameState {
         puzzle: game_level.puzzle,
-        solution,
+        solution: Solution::default(),
         current_level: 0,
     });
-    app_state.set(AppState::InGame);
+    commands.insert_resource(TextureHandles {
+        textures: ["house.png", "cross.png"]
+            .map(|name| server.load(name))
+            .to_vec(),
+    });
 
     commands.spawn(AudioBundle {
         source: server.load("ambient.mp3"),
@@ -50,7 +53,12 @@ fn setup(
     });
 }
 
-fn switch_levels(mut game_state: ResMut<GameState>, mut app_state: ResMut<NextState<AppState>>) {
+fn switch_levels(
+    mut commands: Commands,
+    mut game_state: ResMut<GameState>,
+    mut app_state: ResMut<NextState<AppState>>,
+) {
+    commands.spawn((render::LevelRender::default(), SpatialBundle::default()));
     let game_level = level::all_levels().swap_remove(game_state.current_level);
     game_state.puzzle = game_level.puzzle;
     game_state.solution = Solution::default();

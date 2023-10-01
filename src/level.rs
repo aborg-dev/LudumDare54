@@ -10,7 +10,7 @@ pub enum BuildingType {
 
 impl BuildingType {
     #[allow(dead_code)]
-    pub fn to_char(&self) -> u8 {
+    pub fn to_char(self) -> u8 {
         match self {
             BuildingType::House => b'1',
             BuildingType::Trash => b'T',
@@ -44,7 +44,7 @@ pub enum CellType {
 }
 
 impl CellType {
-    pub fn to_char(&self) -> char {
+    pub fn to_char(self) -> char {
         match self {
             CellType::Grass => 'g',
             CellType::Hole => 'x',
@@ -135,15 +135,14 @@ impl Solution {
         let mut solution = Solution {
             placements: Vec::new(),
         };
-        for row in 0..s.len() {
-            for column in 0..s[row].len() {
-                let c = s[row].as_bytes()[column];
+        for (row, line) in s.iter().enumerate() {
+            for (column, c) in line.as_bytes().iter().enumerate() {
                 // Skip cells with background objects.
-                if [b'.', b'g', b'x'].contains(&c) {
+                if [b'.', b'g', b'x'].contains(c) {
                     continue;
                 }
                 solution.placements.push(Placement {
-                    building: BuildingType::from_char(c),
+                    building: BuildingType::from_char(*c),
                     position: Some(Position { row, column }),
                 })
             }

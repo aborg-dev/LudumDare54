@@ -209,24 +209,7 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
     // Check that houses don't have other houses nearby.
     for (index, placement) in solution.placements.iter().enumerate() {
         let position = placement.position;
-
-        let mut found_house = false;
-        for d in 0..4 {
-            let nrow = position.row as i32 + DROW[d];
-            let ncol = position.column as i32 + DCOL[d];
-            if !puzzle.is_valid(nrow, ncol) {
-                continue;
-            }
-
-            let nrow = nrow as usize;
-            let ncol = ncol as usize;
-            if has_house[nrow][ncol] {
-                found_house = true;
-                break;
-            }
-        }
-
-        if found_house {
+        if count_adjacent_houses(position.row, position.column, &has_house, puzzle) > 0 {
             placement_violations.push(PlacementViolation {
                 house_index: index,
                 violation: ViolationType::AdjacentHouse,
@@ -252,7 +235,18 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
                         violation: t,
                     });
                 }
-                CellType::Mountain => {}
+                CellType::Mountain => {
+                    let count = count_diagnoal_houses(row, col, &has_house, puzzle);
+                    let t = match count.cmp(&2) {
+                        std::cmp::Ordering::Less => ConstraintViolationType::Underflow,
+                        std::cmp::Ordering::Equal => ConstraintViolationType::Match,
+                        std::cmp::Ordering::Greater => ConstraintViolationType::Overflow,
+                    };
+                    constraint_violations.push(ConstraintViolation {
+                        position: Position { row, column: col },
+                        violation: t,
+                    });
+                }
             };
         }
     }
@@ -263,6 +257,33 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
         placement_violations,
         constraint_violations,
     }
+}
+
+pub fn count_diagnoal_houses(
+    row: usize,
+    col: usize,
+    has_house: &Vec<Vec<bool>>,
+    puzzle: &Puzzle,
+) -> usize {
+    let mut count = 0;
+    for drow in [-1, 1] {
+        for dcol in [-1, 1] {
+            for d in 1..puzzle.rows().max(puzzle.columns()) {
+                let nrow = row as i32 + drow * d as i32;
+                let ncol = col as i32 + dcol * d as i32;
+                if !puzzle.is_valid(nrow, ncol) {
+                    break;
+                }
+                let nrow = nrow as usize;
+                let ncol = ncol as usize;
+                if has_house[nrow][ncol] {
+                    count += 1;
+                    break;
+                }
+            }
+        }
+    }
+    count
 }
 
 pub fn count_houses_in_3x3(
@@ -284,6 +305,30 @@ pub fn count_houses_in_3x3(
             if has_house[nrow][ncol] {
                 count += 1;
             }
+        }
+    }
+    count
+}
+
+pub fn count_adjacent_houses(
+    row: usize,
+    col: usize,
+    has_house: &Vec<Vec<bool>>,
+    puzzle: &Puzzle,
+) -> usize {
+    let mut count = 0;
+    for d in 0..4 {
+        let nrow = row as i32 + DROW[d];
+        let ncol = col as i32 + DCOL[d];
+        if !puzzle.is_valid(nrow, ncol) {
+            continue;
+        }
+
+        let nrow = nrow as usize;
+        let ncol = ncol as usize;
+        if has_house[nrow][ncol] {
+            count += 1;
+            break;
         }
     }
     count

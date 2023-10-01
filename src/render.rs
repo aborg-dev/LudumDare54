@@ -70,16 +70,25 @@ pub fn create_level_render(
             commands.entity(level_render_entity).add_child(id);
             level_render.field[r].push(id);
 
-            let id = commands.spawn((SpriteBundle {
-                sprite: Sprite {
-                    custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
-                    anchor: Anchor::BottomLeft,
-                    ..Default::default()
-                },
-                transform: Transform::from_xyz(c as f32 * CELL_SIZE, r as f32 * CELL_SIZE, 0.1),
-                texture: server.load("cross.png"),
-                ..Default::default()
-            }, IncorrectPlacement { row: r, col: c })).id();
+            let id = commands
+                .spawn((
+                    SpriteBundle {
+                        sprite: Sprite {
+                            custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
+                            anchor: Anchor::BottomLeft,
+                            ..Default::default()
+                        },
+                        transform: Transform::from_xyz(
+                            c as f32 * CELL_SIZE,
+                            r as f32 * CELL_SIZE,
+                            0.1,
+                        ),
+                        texture: server.load("cross.png"),
+                        ..Default::default()
+                    },
+                    IncorrectPlacement { row: r, col: c },
+                ))
+                .id();
             commands.entity(level_render_entity).add_child(id);
         }
     }
@@ -130,25 +139,37 @@ pub fn create_level_render(
 
     for r in 0..rows {
         let text_bundle = Text2dBundle {
-            text: Text::from_section(game_state.puzzle.row_count[r].to_string(), text_style.clone()).with_alignment(TextAlignment::Center),
+            text: Text::from_section(
+                game_state.puzzle.row_count[r].to_string(),
+                text_style.clone(),
+            )
+            .with_alignment(TextAlignment::Center),
             transform: Transform::from_xyz(-0.2 * CELL_SIZE, (r as f32 + 0.5) * CELL_SIZE, 0.0),
             ..default()
         };
-        let id = commands.spawn((text_bundle, RowBuildingsRequired { row: r })).id();
+        let id = commands
+            .spawn((text_bundle, RowBuildingsRequired { row: r }))
+            .id();
         commands.entity(level_render_entity).add_child(id);
     }
 
     for c in 0..columns {
         let text_bundle = Text2dBundle {
-            text: Text::from_section(game_state.puzzle.col_count[c].to_string(), text_style.clone()).with_alignment(TextAlignment::Center),
+            text: Text::from_section(
+                game_state.puzzle.col_count[c].to_string(),
+                text_style.clone(),
+            )
+            .with_alignment(TextAlignment::Center),
             transform: Transform::from_xyz(
                 (c as f32 + 0.5) * CELL_SIZE,
                 puzzle.rows() as f32 * CELL_SIZE + 0.2 * CELL_SIZE,
-                0.0
+                0.0,
             ),
             ..default()
         };
-        let id = commands.spawn((text_bundle, ColBuildingsRequired { col: c })).id();
+        let id = commands
+            .spawn((text_bundle, ColBuildingsRequired { col: c }))
+            .id();
         commands.entity(level_render_entity).add_child(id);
     }
 }
@@ -200,8 +221,14 @@ pub fn update_placements_render(
 
 pub fn update_buildings_required(
     game_state: Res<GameState>,
-    mut row_buildings_required_text_query: Query<(&mut Text, &RowBuildingsRequired), Without<ColBuildingsRequired>>,
-    mut col_buildings_required_text_query: Query<(&mut Text, &ColBuildingsRequired), Without<RowBuildingsRequired>>,
+    mut row_buildings_required_text_query: Query<
+        (&mut Text, &RowBuildingsRequired),
+        Without<ColBuildingsRequired>,
+    >,
+    mut col_buildings_required_text_query: Query<
+        (&mut Text, &ColBuildingsRequired),
+        Without<RowBuildingsRequired>,
+    >,
 ) {
     let validation_result = validate_solution(&game_state.solution, &game_state.puzzle);
     let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.columns());
@@ -216,7 +243,10 @@ pub fn update_buildings_required(
             LineStatus::Match => match_color,
             LineStatus::Overflow => overflow_color,
         };
-        if let Some((mut text, _)) = row_buildings_required_text_query.iter_mut().find(|(_, x)| x.row == r) {
+        if let Some((mut text, _)) = row_buildings_required_text_query
+            .iter_mut()
+            .find(|(_, x)| x.row == r)
+        {
             text.sections[0].style.color = color;
         }
     }
@@ -227,7 +257,10 @@ pub fn update_buildings_required(
             LineStatus::Match => match_color,
             LineStatus::Overflow => overflow_color,
         };
-        if let Some((mut text, _)) = col_buildings_required_text_query.iter_mut().find(|(_, x)| x.col == c) {
+        if let Some((mut text, _)) = col_buildings_required_text_query
+            .iter_mut()
+            .find(|(_, x)| x.col == c)
+        {
             text.sections[0].style.color = color;
         }
     }
@@ -242,14 +275,21 @@ pub fn update_incorrect_placements(
 
     for r in 0..rows {
         for c in 0..cols {
-            let (mut visibility, _) = incorrect_placements_query.iter_mut().find(|(_, x)| x.row == r && x.col == c).unwrap();
+            let (mut visibility, _) = incorrect_placements_query
+                .iter_mut()
+                .find(|(_, x)| x.row == r && x.col == c)
+                .unwrap();
             *visibility = Visibility::Hidden;
 
             let matches_position = |x: &&PlacementViolation| {
                 let placement = &game_state.solution.placements[x.house_index];
-                placement.position == Position{row: r, column: c}
+                placement.position == Position { row: r, column: c }
             };
-            if let Some(x) = validation_result.placement_violations.iter().find(matches_position) {
+            if let Some(x) = validation_result
+                .placement_violations
+                .iter()
+                .find(matches_position)
+            {
                 *visibility = Visibility::Inherited;
             };
         }

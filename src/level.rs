@@ -238,8 +238,8 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
     for row in 0..puzzle.rows() {
         for col in 0..puzzle.columns() {
             match puzzle.field[row][col] {
-                CellType::Grass => {},
-                CellType::Tree => {},
+                CellType::Grass => {}
+                CellType::Tree => {}
                 CellType::Lake => {
                     let count = count_houses_in_3x3(row, col, &has_house, puzzle);
                     let t = match count.cmp(&3) {
@@ -251,10 +251,8 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
                         position: Position { row, column: col },
                         violation: t,
                     });
-                },
-                CellType::Mountain => {
-
-                },
+                }
+                CellType::Mountain => {}
             };
         }
     }
@@ -267,7 +265,12 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
     }
 }
 
-pub fn count_houses_in_3x3(row: usize, col: usize, has_house: &Vec<Vec<bool>>, puzzle: &Puzzle) -> usize {
+pub fn count_houses_in_3x3(
+    row: usize,
+    col: usize,
+    has_house: &Vec<Vec<bool>>,
+    puzzle: &Puzzle,
+) -> usize {
     let mut count = 0;
     for drow in -1..=1 {
         for dcol in -1..=1 {

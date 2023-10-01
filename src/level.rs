@@ -369,3 +369,7 @@ pub fn third_level() -> GameLevel {
         ]),
     }
 }
+
+pub fn all_levels() -> Vec<GameLevel> {
+    vec![first_level(), second_level(), third_level()]
+}

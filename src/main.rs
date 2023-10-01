@@ -36,8 +36,7 @@ fn setup(mut commands: Commands, mut app_state: ResMut<NextState<AppState>>) {
 }
 
 fn main() {
-    let game_levels = vec![level::first_level(), level::second_level()];
-    for game_level in game_levels {
+    for game_level in level::all_levels() {
         println!(
             "{}: {:?}",
             game_level.name,

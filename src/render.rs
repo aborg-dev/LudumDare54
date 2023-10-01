@@ -44,18 +44,9 @@ pub struct CellHint {
     col: usize,
 }
 
-pub fn get_cell_color(cell_type: CellType) -> Color {
-    match cell_type {
-        CellType::Grass => Color::NONE,
-        CellType::Tree => Color::WHITE,
-        CellType::Lake => Color::WHITE,
-        CellType::Mountain => Color::WHITE,
-    }
-}
-
 pub fn get_cell_texture(server: &Res<AssetServer>, cell_type: CellType) -> Handle<Image> {
     match cell_type {
-        CellType::Grass => DEFAULT_IMAGE_HANDLE.typed(),
+        CellType::Grass => server.load("grass_1.png"),
         CellType::Tree => server.load("forest.png"),
         CellType::Lake => server.load("lake.png"),
         CellType::Mountain => server.load("mountain.png"),
@@ -76,7 +67,6 @@ pub fn create_level_render(
 
     for r in 0..rows {
         for c in 0..columns {
-            let color = get_cell_color(puzzle.field[r][c]);
             let texture = get_cell_texture(&server, puzzle.field[r][c]);
             let tx = c as f32 * CELL_SIZE;
             let ty = puzzle_height - CELL_SIZE - r as f32 * CELL_SIZE;
@@ -89,16 +79,19 @@ pub fn create_level_render(
                         ..Default::default()
                     },
                     transform: Transform::from_xyz(tx, ty, -0.1),
-                    texture: server.load("empty.png"),
+                    texture: server.load("grass_1.png"),
                     ..Default::default()
                 })
                 .id();
             commands.entity(level_render_entity).add_child(id);
 
+            ///
+            let ix = (2.0 * tx - ty) / 2.0;
+            let iy = (2.0 * ty + tx) / 2.0;
+            ///
             let id = commands
                 .spawn(SpriteBundle {
                     sprite: Sprite {
-                        color,
                         custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
                         anchor: Anchor::BottomLeft,
                         ..Default::default()

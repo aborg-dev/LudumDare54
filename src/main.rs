@@ -67,6 +67,7 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
             "dot.png",
             "lake.png",
             "mountain.png",
+            "grass_1.png",
         ]
         .map(|name| server.load(name))
         .to_vec(),

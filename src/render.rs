@@ -1,4 +1,4 @@
-use crate::level::{validate_solution, CellType};
+use crate::level::{validate_solution, CellType, LineStatus};
 use crate::GameState;
 use bevy::math::Vec2;
 use bevy::prelude::*;
@@ -17,9 +17,13 @@ pub struct LevelRender {
 pub struct SolutionStatusText;
 
 #[derive(Component)]
-pub struct BuildingsRequired {
-    required: usize,
-    set: usize,
+pub struct RowBuildingsRequired {
+    row: usize,
+}
+
+#[derive(Component)]
+pub struct ColBuildingsRequired {
+    col: usize,
 }
 
 pub fn create_level_render(
@@ -107,17 +111,17 @@ pub fn create_level_render(
 
     for r in 0..rows {
         let text_bundle = Text2dBundle {
-            text: Text::from_section("", text_style.clone()).with_alignment(TextAlignment::Center),
+            text: Text::from_section(game_state.puzzle.row_count[r].to_string(), text_style.clone()).with_alignment(TextAlignment::Center),
             transform: Transform::from_xyz(-0.2 * CELL_SIZE, (r as f32 + 0.5) * CELL_SIZE, 0.0),
             ..default()
         };
-        let id = commands.spawn((text_bundle, BuildingsRequired{required: 3, set: 0})).id();
+        let id = commands.spawn((text_bundle, RowBuildingsRequired { row: r })).id();
         commands.entity(level_render_entity).add_child(id);
     }
 
     for c in 0..columns {
         let text_bundle = Text2dBundle {
-            text: Text::from_section("", text_style.clone()).with_alignment(TextAlignment::Center),
+            text: Text::from_section(game_state.puzzle.col_count[c].to_string(), text_style.clone()).with_alignment(TextAlignment::Center),
             transform: Transform::from_xyz(
                 (c as f32 + 0.5) * CELL_SIZE,
                 puzzle.rows() as f32 * CELL_SIZE + 0.2 * CELL_SIZE,
@@ -125,7 +129,7 @@ pub fn create_level_render(
             ),
             ..default()
         };
-        let id = commands.spawn((text_bundle, BuildingsRequired{required: 3, set: c + 2})).id();
+        let id = commands.spawn((text_bundle, ColBuildingsRequired { col: c })).id();
         commands.entity(level_render_entity).add_child(id);
     }
 }
@@ -177,18 +181,32 @@ pub fn update_placements_render(
 
 pub fn update_buildings_required(
     game_state: Res<GameState>,
-    mut buildings_required_text_query: Query<(&mut Text, &BuildingsRequired)>,
+    mut row_buildings_required_text_query: Query<(&mut Text, &RowBuildingsRequired), Without<ColBuildingsRequired>>,
+    mut col_buildings_required_text_query: Query<(&mut Text, &ColBuildingsRequired), Without<RowBuildingsRequired>>,
 ) {
-    for (mut text, buildings_required) in &mut buildings_required_text_query.iter_mut() {
-        text.sections[0].value = buildings_required.required.to_string();
-        let color = if buildings_required.set < buildings_required.required {
-            Color::WHITE
-        } else if buildings_required.set == buildings_required.required {
-            Color::GREEN
-        } else {
-            Color::RED
+    let validation_result = validate_solution(&game_state.solution, &game_state.puzzle);
+    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.columns());
+
+    for r in 0..rows {
+        let color = match validation_result.row_status[r] {
+            LineStatus::Underflow => Color::WHITE,
+            LineStatus::Match => Color::GREEN,
+            LineStatus::Overflow => Color::RED,
         };
-        text.sections[0].style.color = color;
+        if let Some((mut text, _)) = row_buildings_required_text_query.iter_mut().find(|(_, x)| x.row == r) {
+            text.sections[0].style.color = color;
+        }
+    }
+
+    for c in 0..cols {
+        let color = match validation_result.col_status[c] {
+            LineStatus::Underflow => Color::WHITE,
+            LineStatus::Match => Color::GREEN,
+            LineStatus::Overflow => Color::RED,
+        };
+        if let Some((mut text, _)) = col_buildings_required_text_query.iter_mut().find(|(_, x)| x.col == c) {
+            text.sections[0].style.color = color;
+        }
     }
 }
 

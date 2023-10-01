@@ -128,8 +128,8 @@ enum ViolationType {
 
 #[derive(Debug)]
 pub struct PlacementViolation {
-    house_index: usize,
-    violation: ViolationType,
+    pub house_index: usize,
+    pub violation: ViolationType,
 }
 
 #[derive(Debug, Clone)]
@@ -141,8 +141,8 @@ pub enum LineStatus {
 
 #[derive(Debug)]
 pub struct ValidationResult {
-    row_status: Vec<LineStatus>,
-    col_status: Vec<LineStatus>,
+    pub row_status: Vec<LineStatus>,
+    pub col_status: Vec<LineStatus>,
     placement_violations: Vec<PlacementViolation>,
 }
 

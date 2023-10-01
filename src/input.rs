@@ -1,5 +1,5 @@
-use crate::level::{CellType, Placement, Position, all_levels};
-use crate::{render, GameState, AppState};
+use crate::level::{all_levels, CellType, Placement, Position};
+use crate::{render, AppState, GameState};
 use bevy::audio::*;
 use bevy::math::*;
 use bevy::prelude::*;
@@ -7,15 +7,9 @@ use bevy::window::{PrimaryWindow, Window};
 
 pub struct GameInputPlugin;
 
-#[derive(Resource, Default)]
-pub struct SelectedLevel {
-    pub number: Option<usize>,
-}
-
 impl Plugin for GameInputPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<SelectedLevel>()
-            .add_systems(Update, keyboard_input)
+        app.add_systems(Update, keyboard_input)
             .add_systems(Update, mouse_input);
     }
 }
@@ -23,7 +17,6 @@ impl Plugin for GameInputPlugin {
 fn keyboard_input(
     keys: Res<Input<KeyCode>>,
     mut game_state: ResMut<GameState>,
-    mut selected_level: ResMut<SelectedLevel>,
     mut app_state: ResMut<NextState<AppState>>,
 ) {
     if keys.just_pressed(KeyCode::Right) {

@@ -60,8 +60,8 @@ pub struct VolumeSettings {
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default, Copy)]
 pub enum AppState {
     InGame,
-    SwitchLevel,
     #[default]
+    SwitchLevel,
     SelectLevelScreen,
     MainMenuScreen,
 }
@@ -76,6 +76,9 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
             "button_play.png",
             "button_levels.png",
             "button_back.png",
+            "button_snd_on.png",
+            "button_snd_off.png",
+            "button_snd_low.png",
             "continue.png",
             "empty.png",
             "forest_iso.png",

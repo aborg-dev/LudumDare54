@@ -1,6 +1,7 @@
 use crate::level::*;
 use crate::AppState;
 use crate::GameState;
+use crate::GlobalVolumeSettings;
 use crate::VolumeSettings;
 use bevy::audio::PlaybackMode;
 use bevy::audio::Volume;
@@ -61,7 +62,8 @@ pub const MAX_HOUSE_COUNT: usize = 100;
 
 const NORMAL_BUTTON: Color = Color::WHITE;
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
-const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
+// const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
+const PRESSED_BUTTON: Color = HOVERED_BUTTON;
 
 #[derive(Component, Default)]
 pub struct GameScreenRoot {
@@ -259,66 +261,93 @@ pub fn item_number_constraints(
 }
 
 pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>) {
-    // Common style for all buttons on the screen
-    let button_style = Style {
-        width: Val::Px(50.0),
-        height: Val::Px(50.0),
-        margin: UiRect::all(Val::Px(20.0)),
-        justify_content: JustifyContent::Center,
-        align_items: AlignItems::Center,
-        ..default()
-    };
-
     commands
         .spawn((
             NodeBundle {
                 style: Style {
                     width: Val::Percent(100.0),
-                    height: Val::Percent(10.0),
-                    flex_direction: FlexDirection::Row,
+                    // height: Val::Percent(10.0),
+                    flex_direction: FlexDirection::Column,
                     align_items: AlignItems::Center,
                     ..default()
                 },
+                // background_color: BackgroundColor(Color::RED),
                 ..default()
             },
             OnGameScreen,
         ))
         .with_children(|builder| {
-            builder.spawn((
-                ButtonBundle {
-                    style: button_style.clone(),
-                    background_color: NORMAL_BUTTON.into(),
-                    image: UiImage::new(server.load("button_back.png")),
-                    ..default()
-                },
-                GameScreenButtonAction::Back,
-            ));
-            builder.spawn(TextBundle::from_section(
-                name,
-                TextStyle {
-                    font: server.load(crate::TEXT_FONT_NAME),
-                    font_size: 80.0,
-                    color: crate::CUSTOM_ORANGE,
-                    ..default()
-                },
-            ));
-            builder.spawn((
-                ButtonBundle {
+            builder
+                .spawn(NodeBundle {
                     style: Style {
-                        width: Val::Px(200.0),
-                        height: Val::Px(50.0),
-                        margin: UiRect::left(Val::Px(100.0)),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        ..default()
+                        width: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceBetween,
+                        ..Default::default()
                     },
-                    image: UiImage::new(server.load("continue.png")),
-                    visibility: Visibility::Hidden,
+                    // background_color: BackgroundColor(Color::BLUE),
                     ..Default::default()
-                },
-                CompleteBanner,
-                GameScreenButtonAction::Complete,
-            ));
+                })
+                .with_children(|builder| {
+                    builder.spawn((
+                        ButtonBundle {
+                            style: Style {
+                                width: Val::Px(50.0),
+                                height: Val::Px(50.0),
+                                margin: UiRect::all(Val::Px(20.0)),
+                                align_self: AlignSelf::Center,
+                                ..default()
+                            },
+                            background_color: NORMAL_BUTTON.into(),
+                            image: UiImage::new(server.load("button_back.png")),
+                            ..default()
+                        },
+                        GameScreenButtonAction::Back,
+                    ));
+
+                    builder.spawn(TextBundle::from_section(
+                        name,
+                        TextStyle {
+                            font: server.load(crate::TEXT_FONT_NAME),
+                            font_size: 80.0,
+                            color: crate::CUSTOM_ORANGE,
+                            ..default()
+                        },
+                    ));
+                    builder.spawn((
+                        ButtonBundle {
+                            style: Style {
+                                width: Val::Px(50.0),
+                                height: Val::Px(50.0),
+                                margin: UiRect::all(Val::Px(20.0)),
+                                align_self: AlignSelf::Center,
+                                ..default()
+                            },
+                            background_color: NORMAL_BUTTON.into(),
+                            image: UiImage::new(server.load("button_snd_on.png")),
+                            ..default()
+                        },
+                        GameScreenButtonAction::ToggleSound,
+                    ));
+                });
+
+            // builder.spawn((
+            //     ButtonBundle {
+            //         style: Style {
+            //             width: Val::Px(200.0),
+            //             height: Val::Px(50.0),
+            //             margin: UiRect::left(Val::Px(100.0)),
+            //             justify_content: JustifyContent::Center,
+            //             align_items: AlignItems::Center,
+            //             ..default()
+            //         },
+            //         image: UiImage::new(server.load("continue.png")),
+            //         visibility: Visibility::Hidden,
+            //         ..Default::default()
+            //     },
+            //     CompleteBanner,
+            //     GameScreenButtonAction::Complete,
+            // ));
         });
 }
 
@@ -742,6 +771,7 @@ fn button_system(
     >,
     mut game_state: ResMut<GameState>,
     mut app_state: ResMut<NextState<AppState>>,
+    mut global_volume_settings: ResMut<GlobalVolumeSettings>,
 ) {
     for (interaction, mut color, action) in &mut interaction_query {
         *color = match *interaction {
@@ -755,7 +785,13 @@ fn button_system(
                 GameScreenButtonAction::Back => {
                     app_state.set(AppState::MainMenuScreen);
                 }
-                GameScreenButtonAction::ToggleSound => todo!(),
+                GameScreenButtonAction::ToggleSound => {
+                    if global_volume_settings.volume == 0.0 {
+                        global_volume_settings.volume = 1.0;
+                    } else {
+                        global_volume_settings.volume = 0.0;
+                    }
+                }
                 GameScreenButtonAction::Complete => {
                     if game_state.current_level + 1 < all_levels().len() {
                         game_state.current_level += 1;

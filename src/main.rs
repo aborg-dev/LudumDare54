@@ -15,7 +15,7 @@ mod main_menu_screen;
 mod select_level_screen;
 
 pub const TEXT_FONT_NAME: &str = "NanumBrushScript-Regular.ttf";
-pub const CUSTOM_ORANGE: Color = Color::rgb(239.0 / 256.0, 167.0 / 256.0, 115.0 / 256.0);
+pub const CUSTOM_ORANGE: Color = Color::rgb(238.0 / 256.0, 145.0 / 256.0, 2.0 / 256.0);
 pub const SKY_COLOR: Color = Color::rgb(220.0 / 255.0, 238.0 / 255.0, 255.0 / 255.0);
 
 #[derive(Resource)]

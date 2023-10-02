@@ -22,8 +22,7 @@ pub struct GameState {
 
 impl GameState {
     pub fn new(puzzle: level::Puzzle, current_level: usize) -> Self {
-        let rows = puzzle.rows();
-        let cols = puzzle.cols();
+        let (rows, cols) = puzzle.dims();
         Self {
             puzzle,
             solution: Solution::default(),

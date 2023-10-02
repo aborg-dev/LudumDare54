@@ -45,6 +45,10 @@ impl Puzzle {
         self.field[0].len()
     }
 
+    pub fn dims(&self) -> (usize, usize) {
+        (self.rows(), self.cols())
+    }
+
     pub fn is_valid(&self, row: i32, col: i32) -> bool {
         row >= 0 && row < self.rows() as i32 && col >= 0 && col < self.cols() as i32
     }

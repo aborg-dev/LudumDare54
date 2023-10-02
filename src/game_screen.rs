@@ -98,7 +98,7 @@ pub fn create_level_render(
     // let (level_render_entity, mut level_render) = level_render_query.single_mut();
     let puzzle = &game_state.puzzle;
 
-    let (rows, cols) = (puzzle.rows(), puzzle.cols());
+    let (rows, cols) = puzzle.dims();
     let mut rng = StdRng::seed_from_u64(game_state.current_level as u64);
     level_render.random_number = vec![vec![0; cols]; rows];
     for r in 0..rows {
@@ -305,7 +305,7 @@ pub fn update_level_render(
 ) {
     let (_, _, mut transform) = level_render_query.single_mut();
     let puzzle = &game_state.puzzle;
-    let (rows, cols) = (puzzle.rows(), puzzle.cols());
+    let (rows, cols) = puzzle.dims();
     let (puzzle_width, _puzzle_height) = (cols as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
     transform.translation = Vec3::new(-puzzle_width / 2.0, 0.0, 0.0);
 }
@@ -316,7 +316,7 @@ pub fn update_placements_render(
     mut sprites_query: Query<(&mut Transform, &mut Visibility)>,
 ) {
     let level_render = level_render_query.single();
-    let (_rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.cols());
+    let (_rows, cols) = game_state.puzzle.dims();
     for i in 0..100 {
         let id = level_render.placements[i];
         if let Ok((mut transform, mut visibility)) = sprites_query.get_mut(id) {
@@ -350,7 +350,7 @@ pub fn update_buildings_required(
     >,
 ) {
     let validation_result = validate_solution(&game_state.solution, &game_state.puzzle);
-    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.cols());
+    let (rows, cols) = game_state.puzzle.dims();
 
     let underflow_color = Color::WHITE;
     let match_color = Color::rgb(0.4, 1.0, 0.3);
@@ -391,7 +391,7 @@ pub fn update_incorrect_placements(
     mut constraint_violations_query: Query<(&mut Text, &ConstraintViolationRender)>,
 ) {
     let validation_result = validate_solution(&game_state.solution, &game_state.puzzle);
-    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.cols());
+    let (rows, cols) = game_state.puzzle.dims();
 
     let underflow_color = Color::GRAY;
     let match_color = Color::rgb(0.2, 0.8, 0.2);
@@ -442,7 +442,7 @@ pub fn update_cell_hints(
     game_state: Res<GameState>,
     mut cell_hint_query: Query<(&mut Visibility, &CellHint)>,
 ) {
-    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.cols());
+    let (rows, cols) = game_state.puzzle.dims();
     for r in 0..rows {
         for c in 0..cols {
             let (mut visibility, _) = cell_hint_query
@@ -470,7 +470,7 @@ fn handle_mouse_input(
     let level_transform = level_render_query.single();
     let (camera, camera_global_transform) = camera_query.single();
     let window = window_query.single();
-    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.cols());
+    let (rows, cols) = game_state.puzzle.dims();
 
     let left_just_pressed = mouse.just_pressed(MouseButton::Left);
     let right_just_pressed = mouse.just_pressed(MouseButton::Right);

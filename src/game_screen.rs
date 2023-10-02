@@ -46,7 +46,6 @@ pub const MAX_HOUSE_COUNT: usize = 100;
 
 #[derive(Component, Default)]
 pub struct GameScreenRoot {
-    placements: Vec<Entity>,
     random_number: Vec<Vec<u32>>,
 }
 
@@ -79,6 +78,11 @@ pub struct ConstraintViolationRender {
 pub struct CellHint {
     row: usize,
     col: usize,
+}
+
+#[derive(Component)]
+pub struct HouseIndex {
+    index: usize,
 }
 
 pub fn get_cell_texture(server: &Res<AssetServer>, cell_type: CellType) -> Handle<Image> {
@@ -266,22 +270,25 @@ pub fn create_game_screen(
         }
     }
 
-    for _ in 0..MAX_HOUSE_COUNT {
-        let id = commands
-            .spawn(SpriteBundle {
-                texture: server.load("house_iso.png"),
-                sprite: Sprite {
-                    custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
-                    anchor: Anchor::CenterLeft,
-                    ..Default::default()
-                },
-                visibility: Visibility::Hidden,
-                ..Default::default()
-            })
-            .id();
-        commands.entity(game_screen_entity).add_child(id);
-        game_screen_root.placements.push(id);
-    }
+    commands
+        .entity(game_screen_entity)
+        .with_children(|builder| {
+            for index in 0..MAX_HOUSE_COUNT {
+                builder.spawn((
+                    SpriteBundle {
+                        texture: server.load("house_iso.png"),
+                        sprite: Sprite {
+                            custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
+                            anchor: Anchor::CenterLeft,
+                            ..Default::default()
+                        },
+                        visibility: Visibility::Hidden,
+                        ..Default::default()
+                    },
+                    HouseIndex { index },
+                ));
+            }
+        });
 
     commands
         .entity(game_screen_entity)
@@ -316,28 +323,23 @@ pub fn update_game_screen(
 
 pub fn update_placements_render(
     game_state: Res<GameState>,
-    game_screen_query: Query<&GameScreenRoot>,
-    mut sprites_query: Query<(&mut Transform, &mut Visibility)>,
+    mut houses_query: Query<(&mut Transform, &mut Visibility, &HouseIndex)>,
 ) {
-    let game_screen = game_screen_query.single();
     let (_rows, cols) = game_state.puzzle.dims();
-    for i in 0..MAX_HOUSE_COUNT {
-        let id = game_screen.placements[i];
-        if let Ok((mut transform, mut visibility)) = sprites_query.get_mut(id) {
-            if i < game_state.solution.placements.len() {
-                let position = game_state.solution.placements[i].position;
-                *visibility = Visibility::Inherited;
+    for (mut transform, mut visibility, house_index) in houses_query.iter_mut() {
+        if house_index.index < game_state.solution.placements.len() {
+            let position = game_state.solution.placements[house_index.index].position;
+            *visibility = Visibility::Inherited;
 
-                let (c, r) = (position.col, position.row);
-                let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
-                let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
+            let (c, r) = (position.col, position.row);
+            let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
+            let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
 
-                let z = ((cols - c + 1) + r) as f32 * 0.1;
+            let z = ((cols - c + 1) + r) as f32 * 0.1;
 
-                *transform = Transform::from_xyz(ix, iy, z + CELL_LAYER);
-            } else {
-                *visibility = Visibility::Hidden;
-            }
+            *transform = Transform::from_xyz(ix, iy, z + CELL_LAYER);
+        } else {
+            *visibility = Visibility::Hidden;
         }
     }
 }

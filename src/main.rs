@@ -5,14 +5,14 @@ use bevy::window::{close_on_esc, WindowMode};
 use self::game_screen::GameScreenPlugin;
 use self::input::GameInputPlugin;
 use self::level::Solution;
-use self::select_level_screen::SelectLevelScreenPlugin;
 use self::main_menu_screen::MainMenuScreenPlugin;
+use self::select_level_screen::SelectLevelScreenPlugin;
 
 mod game_screen;
 mod input;
 mod level;
-mod select_level_screen;
 mod main_menu_screen;
+mod select_level_screen;
 
 #[derive(Resource)]
 pub struct GameState {

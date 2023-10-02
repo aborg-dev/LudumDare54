@@ -93,11 +93,11 @@ pub fn create_level_render(
     // mut level_render_query: Query<(Entity, &mut LevelRender)>,
     server: Res<AssetServer>,
 ) {
-    let mut level_render = LevelRender::default();
     let level_render_entity = commands.spawn(SpatialBundle::default()).id();
-    // let (level_render_entity, mut level_render) = level_render_query.single_mut();
-    let puzzle = &game_state.puzzle;
+    // This component is added to the entity in the end of this function.
+    let mut level_render = LevelRender::default();
 
+    let puzzle = &game_state.puzzle;
     let (rows, cols) = puzzle.dims();
     let mut rng = StdRng::seed_from_u64(game_state.current_level as u64);
     level_render.random_number = vec![vec![0; cols]; rows];
@@ -170,7 +170,7 @@ pub fn create_level_render(
                 .id();
             commands.entity(level_render_entity).add_child(id);
 
-            let constraint_text = match game_state.puzzle.field[r][c] {
+            let constraint_text = match puzzle.field[r][c] {
                 CellType::Lake => "3",
                 CellType::Mountain => "2",
                 _ => "",
@@ -249,7 +249,7 @@ pub fn create_level_render(
 
         let text_bundle = Text2dBundle {
             text: Text::from_section(
-                game_state.puzzle.row_count[r].to_string(),
+                puzzle.row_count[r].to_string(),
                 text_style.clone(),
             )
             .with_alignment(TextAlignment::Center),
@@ -273,7 +273,7 @@ pub fn create_level_render(
 
         let text_bundle = Text2dBundle {
             text: Text::from_section(
-                game_state.puzzle.col_count[c].to_string(),
+                puzzle.col_count[c].to_string(),
                 text_style.clone(),
             )
             .with_alignment(TextAlignment::Center),

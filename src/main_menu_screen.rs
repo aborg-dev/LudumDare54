@@ -18,7 +18,7 @@ impl<S: States + Copy> Plugin for MainMenuScreenPlugin<S> {
 const NORMAL_BUTTON: Color = Color::WHITE;
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
-const TEXT_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
+const TEXT_COLOR: Color = Color::ORANGE;
 
 // Tag component used to tag entities added on the main menu screen
 #[derive(Component)]
@@ -79,7 +79,7 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
                         align_items: AlignItems::Center,
                         ..default()
                     },
-                    background_color: Color::CRIMSON.into(),
+                    background_color: Color::WHITE.into(),
                     ..default()
                 })
                 .with_children(|parent| {

@@ -325,19 +325,19 @@ pub fn create_game_screen(
         }
     }
 
-    commands
-        .entity(game_screen_entity)
-        .with_children(|builder| {
-            builder.spawn(SpriteBundle {
-                texture: server.load("full.png"),
-                sprite: Sprite {
-                    custom_size: Some(Vec2::new(window.height(), window.width())),
-                    anchor: Anchor::CenterLeft,
-                    ..Default::default()
-                },
-                ..Default::default()
-            });
-        });
+    // commands
+    //     .entity(game_screen_entity)
+    //     .with_children(|builder| {
+    //         builder.spawn(SpriteBundle {
+    //             texture: server.load("full.png"),
+    //             sprite: Sprite {
+    //                 custom_size: Some(Vec2::new(window.height(), window.width())),
+    //                 anchor: Anchor::CenterLeft,
+    //                 ..Default::default()
+    //             },
+    //             ..Default::default()
+    //         });
+    //     });
 
     assert_eq!(rows, cols);
     for r in 0..rows {

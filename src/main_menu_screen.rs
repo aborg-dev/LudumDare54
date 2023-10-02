@@ -196,10 +196,10 @@ fn button_system(
             match *action {
                 MenuButtonAction::Play => {
                     app_state.set(AppState::SwitchLevel);
-                },
+                }
                 MenuButtonAction::Levels => {
                     app_state.set(AppState::SelectLevelScreen);
-                },
+                }
                 MenuButtonAction::Quit => todo!(),
             };
         }

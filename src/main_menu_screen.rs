@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use bevy::app::AppExit;
+use bevy::prelude::*;
 
 use crate::AppState;
 

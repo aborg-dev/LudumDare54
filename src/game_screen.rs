@@ -15,11 +15,11 @@ pub struct GameScreenPlugin<S: States + Copy>(pub S);
 
 impl<S: States + Copy> Plugin for GameScreenPlugin<S> {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(self.0), create_level_render)
+        app.add_systems(OnEnter(self.0), create_game_screen)
             .add_systems(
                 Update,
                 (
-                    update_level_render,
+                    update_game_screen,
                     update_placements_render,
                     update_buildings_required,
                     update_incorrect_placements,
@@ -28,7 +28,7 @@ impl<S: States + Copy> Plugin for GameScreenPlugin<S> {
                 )
                     .run_if(in_state(self.0)),
             )
-            .add_systems(OnExit(self.0), destroy_level_render);
+            .add_systems(OnExit(self.0), destroy_game_screen);
     }
 }
 
@@ -41,8 +41,11 @@ pub const CROSS_LAYER: f32 = 300.0;
 pub const TEXT_LAYER: f32 = 400.0;
 pub const AXIS_LAYER: f32 = 500.0;
 
+// Update if the size of the field grows beyond 10x10.
+pub const MAX_HOUSE_COUNT: usize = 100;
+
 #[derive(Component, Default)]
-pub struct LevelRender {
+pub struct GameScreenRoot {
     placements: Vec<Entity>,
     random_number: Vec<Vec<u32>>,
 }
@@ -185,39 +188,38 @@ pub fn item_cell(
     ));
 }
 
-pub fn create_level_render(
+pub fn create_game_screen(
     mut commands: Commands,
     game_state: Res<GameState>,
-    // mut level_render_query: Query<(Entity, &mut LevelRender)>,
     server: Res<AssetServer>,
 ) {
-    let level_render_entity = commands.spawn(SpatialBundle::default()).id();
+    let game_screen_entity = commands.spawn(SpatialBundle::default()).id();
     // This component is added to the entity in the end of this function.
-    let mut level_render = LevelRender::default();
+    let mut game_screen_root = GameScreenRoot::default();
 
     let puzzle = &game_state.puzzle;
     let (rows, cols) = puzzle.dims();
     let mut rng = StdRng::seed_from_u64(game_state.current_level as u64);
-    level_render.random_number = vec![vec![0; cols]; rows];
+    game_screen_root.random_number = vec![vec![0; cols]; rows];
     for r in 0..rows {
         for c in 0..cols {
-            level_render.random_number[r][c] = rng.gen();
+            game_screen_root.random_number[r][c] = rng.gen();
         }
     }
 
     assert_eq!(rows, cols);
     for r in 0..rows {
         for c in 0..cols {
-            let rid = level_render.random_number[r][c] % 3 + 1;
+            let rid = game_screen_root.random_number[r][c] % 3 + 1;
             commands
-                .entity(level_render_entity)
+                .entity(game_screen_entity)
                 .with_children(|builder| {
                     item_cell(builder, r, c, &puzzle, rid, &server);
                 });
         }
     }
 
-    for _ in 0..100 {
+    for _ in 0..MAX_HOUSE_COUNT {
         let id = commands
             .spawn(SpriteBundle {
                 texture: server.load("house_iso.png"),
@@ -230,8 +232,8 @@ pub fn create_level_render(
                 ..Default::default()
             })
             .id();
-        commands.entity(level_render_entity).add_child(id);
-        level_render.placements.push(id);
+        commands.entity(game_screen_entity).add_child(id);
+        game_screen_root.placements.push(id);
     }
 
     let text_style = TextStyle {
@@ -259,7 +261,7 @@ pub fn create_level_render(
         let id = commands
             .spawn((text_bundle, RowBuildingsRequired { row: r }))
             .id();
-        commands.entity(level_render_entity).add_child(id);
+        commands.entity(game_screen_entity).add_child(id);
     }
 
     for c in 0..cols {
@@ -276,27 +278,28 @@ pub fn create_level_render(
         let id = commands
             .spawn((text_bundle, ColBuildingsRequired { col: c }))
             .id();
-        commands.entity(level_render_entity).add_child(id);
+        commands.entity(game_screen_entity).add_child(id);
     }
 
-    commands.entity(level_render_entity).insert(level_render);
+    commands.entity(game_screen_entity).insert(game_screen_root);
 }
 
-pub fn destroy_level_render(
+pub fn destroy_game_screen(
     mut commands: Commands,
-    mut level_render_query: Query<(Entity, &mut LevelRender)>,
+    mut game_screen_query: Query<(Entity, &mut GameScreenRoot)>,
 ) {
-    let (level_render_entity, _) = level_render_query.single_mut();
-    commands.entity(level_render_entity).despawn_descendants();
-    commands.entity(level_render_entity).clear_children();
-    commands.entity(level_render_entity).despawn();
+    let (game_screen_entity, _) = game_screen_query.single_mut();
+    let mut entity_commands = commands.entity(game_screen_entity);
+    entity_commands.despawn_descendants();
+    entity_commands.clear_children();
+    entity_commands.despawn();
 }
 
-pub fn update_level_render(
+pub fn update_game_screen(
     game_state: Res<GameState>,
-    mut level_render_query: Query<(Entity, &LevelRender, &mut Transform)>,
+    mut game_screen_query: Query<(Entity, &GameScreenRoot, &mut Transform)>,
 ) {
-    let (_, _, mut transform) = level_render_query.single_mut();
+    let (_, _, mut transform) = game_screen_query.single_mut();
     let puzzle = &game_state.puzzle;
     let (rows, cols) = puzzle.dims();
     let (puzzle_width, _puzzle_height) = (cols as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
@@ -305,13 +308,13 @@ pub fn update_level_render(
 
 pub fn update_placements_render(
     game_state: Res<GameState>,
-    level_render_query: Query<&LevelRender>,
+    game_screen_query: Query<&GameScreenRoot>,
     mut sprites_query: Query<(&mut Transform, &mut Visibility)>,
 ) {
-    let level_render = level_render_query.single();
+    let game_screen = game_screen_query.single();
     let (_rows, cols) = game_state.puzzle.dims();
-    for i in 0..100 {
-        let id = level_render.placements[i];
+    for i in 0..MAX_HOUSE_COUNT {
+        let id = game_screen.placements[i];
         if let Ok((mut transform, mut visibility)) = sprites_query.get_mut(id) {
             if i < game_state.solution.placements.len() {
                 let position = game_state.solution.placements[i].position;
@@ -454,13 +457,13 @@ pub fn update_cell_hints(
 fn handle_mouse_input(
     mouse: Res<Input<MouseButton>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    level_render_query: Query<&Transform, With<LevelRender>>,
+    game_screen_query: Query<&Transform, With<GameScreenRoot>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     mut game_state: ResMut<GameState>,
     mut commands: Commands,
     server: Res<AssetServer>,
 ) {
-    let level_transform = level_render_query.single();
+    let game_screen_transform = game_screen_query.single();
     let (camera, camera_global_transform) = camera_query.single();
     let window = window_query.single();
     let (rows, cols) = game_state.puzzle.dims();
@@ -469,7 +472,7 @@ fn handle_mouse_input(
     let right_just_pressed = mouse.just_pressed(MouseButton::Right);
 
     let isometric_to_orthographic = |pi: Vec2| {
-        let pi = pi - level_transform.translation.xy();
+        let pi = pi - game_screen_transform.translation.xy();
         let po = Vec2::new(pi.x + 2.0 * pi.y, pi.x - 2.0 * pi.y);
         po / CELL_SIZE
     };

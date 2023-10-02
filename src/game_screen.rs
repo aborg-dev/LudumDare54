@@ -297,7 +297,7 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
                 TextStyle {
                     font: server.load("NotoSerif-SemiBold.ttf"),
                     font_size: 48.0,
-                    color: Color::WHITE,
+                    color: Color::ORANGE,
                     ..default()
                 },
             ));
@@ -308,10 +308,12 @@ pub fn create_game_screen(
     mut commands: Commands,
     game_state: Res<GameState>,
     server: Res<AssetServer>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
     let game_screen_entity = commands.spawn(SpatialBundle::default()).id();
     // This component is added to the entity in the end of this function.
     let mut game_screen_root = GameScreenRoot::default();
+    let window = window_query.single();
 
     let puzzle = &game_state.puzzle;
     let (rows, cols) = puzzle.dims();
@@ -322,6 +324,20 @@ pub fn create_game_screen(
             game_screen_root.random_number[r][c] = rng.gen();
         }
     }
+
+    commands
+        .entity(game_screen_entity)
+        .with_children(|builder| {
+            builder.spawn(SpriteBundle {
+                texture: server.load("full.png"),
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(window.height(), window.width())),
+                    anchor: Anchor::CenterLeft,
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
+        });
 
     assert_eq!(rows, cols);
     for r in 0..rows {

@@ -56,9 +56,9 @@ pub struct VolumeSettings {
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default, Copy)]
 pub enum AppState {
     InGame,
+    #[default]
     SwitchLevel,
     SelectLevelScreen,
-    #[default]
     MainMenuScreen,
 }
 
@@ -86,6 +86,7 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
             "marker_iso_1.png",
             "marker_iso_2.png",
             "marker_iso_3.png",
+            "full.png",
         ]
         .map(|name| server.load(name))
         .to_vec(),

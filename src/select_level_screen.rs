@@ -76,7 +76,7 @@ pub fn create_select_level_screen(mut commands: Commands, server: Res<AssetServe
                         column_gap: Val::Px(12.0),
                         ..default()
                     },
-                    background_color: BackgroundColor(crate::SKY_COLOR),
+                    background_color: BackgroundColor(Color::GRAY),
                     ..default()
                 })
                 .with_children(|builder| {

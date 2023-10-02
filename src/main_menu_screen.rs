@@ -20,6 +20,18 @@ const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 const TEXT_COLOR: Color = Color::ORANGE;
 
+const RULES = """
+Welcome to Skyland -- a flying island with green-green grass, forests, lakes, mountains, and... houses! 
+
+Your job is to place houses, following the following simple rules:
+- Houses cannot be placed in adjacent cells. Diagonal cells are OK. 
+- Each row/column should have a given number of houses (written next to it). 
+- Lake: exactly 3 houses around it (in the 8 cells surrounding the lake).
+- Mountain: exactly 2 houses on the diagonals crossing the mountain (in total). 
+
+Once the houses are placed, the neighbors can live peacefully and enjoy the surroundings! 
+""";
+
 // Tag component used to tag entities added on the main menu screen
 #[derive(Component)]
 struct OnMainMenuScreen;

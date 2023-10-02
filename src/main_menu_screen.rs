@@ -58,7 +58,7 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
 
     commands
         .spawn((
-            NodeBundle {
+            ImageBundle {
                 style: Style {
                     width: Val::Percent(100.0),
                     height: Val::Percent(100.0),
@@ -66,6 +66,7 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
                     justify_content: JustifyContent::Center,
                     ..default()
                 },
+                image: UiImage::new(server.load("full.png")),
                 ..default()
             },
             OnMainMenuScreen,
@@ -78,7 +79,7 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
                         align_items: AlignItems::Center,
                         ..default()
                     },
-                    background_color: Color::WHITE.into(),
+                    // background_color: Color::WHITE.into(),
                     ..default()
                 })
                 .with_children(|parent| {
@@ -88,8 +89,8 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
                             "Skyland",
                             TextStyle {
                                 font: server.load(crate::TEXT_FONT_NAME),
-                                font_size: 80.0,
-                                color: TEXT_COLOR,
+                                font_size: 200.0,
+                                color: crate::CUSTOM_ORANGE,
                                 ..default()
                             },
                         )

@@ -31,7 +31,7 @@ struct OnMainMenuScreen;
 #[derive(Component)]
 enum MenuButtonAction {
     Play,
-    Settings,
+    Levels,
     SettingsDisplay,
     SettingsSound,
     BackToMainMenu,
@@ -139,7 +139,7 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
                                 background_color: NORMAL_BUTTON.into(),
                                 ..default()
                             },
-                            MenuButtonAction::Settings,
+                            MenuButtonAction::Levels,
                         ))
                         .with_children(|parent| {
                             let icon = server.load("textures/Game Icons/wrench.png");
@@ -149,7 +149,7 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
                                 ..default()
                             });
                             parent.spawn(TextBundle::from_section(
-                                "Settings",
+                                "Levels",
                                 button_text_style.clone(),
                             ));
                         });

@@ -6,11 +6,13 @@ use self::game_screen::GameScreenPlugin;
 use self::input::GameInputPlugin;
 use self::level::Solution;
 use self::select_level_screen::SelectLevelScreenPlugin;
+use self::main_menu_screen::MainMenuScreenPlugin;
 
 mod game_screen;
 mod input;
 mod level;
 mod select_level_screen;
+mod main_menu_screen;
 
 #[derive(Resource)]
 pub struct GameState {
@@ -51,9 +53,10 @@ pub struct VolumeSettings {
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default, Copy)]
 pub enum AppState {
     InGame,
-    #[default]
     SwitchLevel,
     SelectLevelScreen,
+    #[default]
+    MainMenuScreen,
 }
 
 fn setup(mut commands: Commands, server: Res<AssetServer>) {
@@ -134,6 +137,7 @@ fn main() {
         .add_systems(Update, close_on_esc)
         .add_systems(Update, update_sounds)
         .add_systems(OnEnter(AppState::SwitchLevel), switch_levels)
+        .add_plugins(MainMenuScreenPlugin(AppState::MainMenuScreen))
         .add_plugins(SelectLevelScreenPlugin(AppState::SelectLevelScreen))
         .add_plugins(GameScreenPlugin(AppState::InGame))
         .add_plugins(GameInputPlugin)

@@ -334,7 +334,7 @@ pub struct GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn two_takes() -> GameLevel {
+pub fn twin_lakes() -> GameLevel {
     GameLevel {
         name: "Twin Lakes".into(),
         puzzle: Puzzle {
@@ -351,7 +351,7 @@ pub fn two_takes() -> GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn trees_4x4() -> GameLevel {
+pub fn forest() -> GameLevel {
     GameLevel {
         name: "Forest".into(),
         puzzle: Puzzle {
@@ -368,7 +368,7 @@ pub fn trees_4x4() -> GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn mountain_4x4() -> GameLevel {
+pub fn green_mountain() -> GameLevel {
     GameLevel {
         name: "Green Mountain".into(),
         puzzle: Puzzle {
@@ -385,7 +385,7 @@ pub fn mountain_4x4() -> GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn lake_and_trees_4x4() -> GameLevel {
+pub fn green_lake() -> GameLevel {
     GameLevel {
         name: "Green Lake".into(),
         puzzle: Puzzle {
@@ -402,7 +402,7 @@ pub fn lake_and_trees_4x4() -> GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn mountain_lakes_5x5() -> GameLevel {
+pub fn mountain_lakes() -> GameLevel {
     GameLevel {
         name: "Mountain lakes".into(),
         puzzle: Puzzle {
@@ -420,7 +420,7 @@ pub fn mountain_lakes_5x5() -> GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn twin_mountains_5x5() -> GameLevel {
+pub fn twin_mountains() -> GameLevel {
     GameLevel {
         name: "Twin Mountains".into(),
         puzzle: Puzzle {
@@ -438,7 +438,7 @@ pub fn twin_mountains_5x5() -> GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn lonely_mountain_5x5() -> GameLevel {
+pub fn lonely_mountain() -> GameLevel {
     GameLevel {
         name: "Lonely Mountain".into(),
         puzzle: Puzzle {
@@ -456,7 +456,7 @@ pub fn lonely_mountain_5x5() -> GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn mega_lakes_5x5() -> GameLevel {
+pub fn lake_valley() -> GameLevel {
     GameLevel {
         name: "Lake Valley".into(),
         puzzle: Puzzle {
@@ -474,7 +474,7 @@ pub fn mega_lakes_5x5() -> GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn study_lines() -> GameLevel {
+pub fn first_level() -> GameLevel {
     GameLevel {
         name: "First".into(),
         puzzle: Puzzle {
@@ -488,7 +488,7 @@ pub fn study_lines() -> GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn study_2x2() -> GameLevel {
+pub fn neighbors() -> GameLevel {
     GameLevel {
         name: "Neighbors".into(),
         puzzle: Puzzle {
@@ -503,7 +503,7 @@ pub fn study_2x2() -> GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn study_2x3() -> GameLevel {
+pub fn meadow() -> GameLevel {
     GameLevel {
         name: "Meadow".into(),
         puzzle: Puzzle {
@@ -518,7 +518,7 @@ pub fn study_2x3() -> GameLevel {
 }
 
 #[rustfmt::skip]
-pub fn study_trees() -> GameLevel {
+pub fn trees_level() -> GameLevel {
     GameLevel {
         name: "Trees".into(),
         puzzle: Puzzle {
@@ -532,19 +532,92 @@ pub fn study_trees() -> GameLevel {
     }
 }
 
+#[rustfmt::skip]
+pub fn single_lake() -> GameLevel {
+    GameLevel {
+        name: "Lake".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               "..T",
+               ".LT",
+               "..T",
+            ]),
+            row_count: vec![1, 1, 1],
+            col_count: vec![1, 2, 0],
+        },
+    }
+}
+
+#[rustfmt::skip]
+pub fn mountain() -> GameLevel {
+    GameLevel {
+        name: "Mountain".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               "....",
+               ".M..",
+               "....",
+               "....",
+            ]),
+            row_count: vec![2, 0, 1, 1],
+            col_count: vec![1, 1, 2, 0],
+        },
+    }
+}
+
+#[rustfmt::skip]
+pub fn large_lake() -> GameLevel {
+    GameLevel {
+        name: "Large Lake".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               "....",
+               "..L.",
+               "....",
+               "....",
+            ]),
+            row_count: vec![1, 1, 2, 2],
+            col_count: vec![2, 2, 1, 1],
+        },
+    }
+}
+
+#[rustfmt::skip]
+pub fn village() -> GameLevel {
+    GameLevel {
+        name: "Village".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               "......",
+               ".M.M..",
+               "......",
+               ".L.L..",
+               "......",
+               "TTTTTT",
+            ]),
+            row_count: vec![3, 0, 3, 2, 3, 0],
+            col_count: vec![2, 2, 2, 2, 1, 2],
+        },
+    }
+}
+
 pub fn all_levels() -> Vec<GameLevel> {
     vec![
-        study_lines(),
-        study_2x2(),
-        study_2x3(),
-        study_trees(),
-        mega_lakes_5x5(),
-        lonely_mountain_5x5(),
-        mountain_lakes_5x5(),
-        two_takes(),
-        trees_4x4(),
-        mountain_4x4(),
-        lake_and_trees_4x4(),
-        twin_mountains_5x5(),
+        first_level(),
+        neighbors(),
+        meadow(),
+        trees_level(),
+        single_lake(),
+        mountain(),
+        large_lake(),
+        green_lake(),
+        forest(),
+        twin_lakes(),
+        green_mountain(),
+        mountain_lakes(),
+        twin_mountains(),
+        lake_valley(),
+        lonely_mountain(),
+        village(),
     ]
 }

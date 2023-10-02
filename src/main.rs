@@ -138,7 +138,7 @@ fn main() {
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "bevy_game".into(),
-                resolution: (800.0, 800.0).into(),
+                resolution: (1000.0, 1000.0).into(),
                 mode: WindowMode::Windowed,
                 // Tells WASM to resize the window according to the available canvas.
                 fit_canvas_to_parent: true,

@@ -383,10 +383,10 @@ pub fn update_incorrect_placements(
                 let placement = &game_state.solution.placements[x.house_index];
                 placement.position == Position { row: r, column: c }
             };
-            if let Some(_) = validation_result
+            if validation_result
                 .placement_violations
                 .iter()
-                .find(matches_position)
+                .find(matches_position).is_some()
             {
                 *visibility = Visibility::Inherited;
             };

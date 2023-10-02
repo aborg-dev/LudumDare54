@@ -20,19 +20,15 @@ fn keyboard_input(
     mut app_state: ResMut<NextState<AppState>>,
     mut global_volume_settings: ResMut<GlobalVolumeSettings>,
 ) {
-    if keys.just_pressed(KeyCode::Right) {
-        if game_state.current_level + 1 < all_levels().len() {
-            game_state.current_level += 1;
-            app_state.set(AppState::SwitchLevel);
-            println!("Going to level {}", game_state.current_level);
-        }
+    if keys.just_pressed(KeyCode::Right) && game_state.current_level + 1 < all_levels().len() {
+        game_state.current_level += 1;
+        app_state.set(AppState::SwitchLevel);
+        println!("Going to level {}", game_state.current_level);
     }
-    if keys.just_pressed(KeyCode::Left) {
-        if game_state.current_level > 0 {
-            game_state.current_level -= 1;
-            app_state.set(AppState::SwitchLevel);
-            println!("Going to level {}", game_state.current_level);
-        }
+    if keys.just_pressed(KeyCode::Left) && game_state.current_level > 0 {
+        game_state.current_level -= 1;
+        app_state.set(AppState::SwitchLevel);
+        println!("Going to level {}", game_state.current_level);
     }
     if keys.just_pressed(KeyCode::L) {
         app_state.set(AppState::SelectLevelScreen);

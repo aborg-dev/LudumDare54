@@ -60,9 +60,9 @@ pub struct VolumeSettings {
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default, Copy)]
 pub enum AppState {
     InGame,
-    #[default]
     SwitchLevel,
     SelectLevelScreen,
+    #[default]
     MainMenuScreen,
 }
 

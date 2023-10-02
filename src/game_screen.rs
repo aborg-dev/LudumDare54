@@ -339,7 +339,7 @@ pub fn create_game_screen(
     //         });
     //     });
 
-    assert_eq!(rows, cols);
+    // assert_eq!(rows, cols);
     for r in 0..rows {
         for c in 0..cols {
             let rid = game_screen_root.random_number[r][c] % 3 + 1;

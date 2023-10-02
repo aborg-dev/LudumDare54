@@ -462,8 +462,71 @@ pub fn mega_lakes_5x5() -> GameLevel {
     }
 }
 
+#[rustfmt::skip]
+pub fn study_lines() -> GameLevel {
+    GameLevel {
+        name: "First".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               ".",
+            ]),
+            row_count: vec![1],
+            col_count: vec![1],
+        },
+    }
+}
+
+#[rustfmt::skip]
+pub fn study_2x2() -> GameLevel {
+    GameLevel {
+        name: "Neighbourhood".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               "..",
+               "..",
+            ]),
+            row_count: vec![1, 1],
+            col_count: vec![1, 1],
+        },
+    }
+}
+
+#[rustfmt::skip]
+pub fn study_2x3() -> GameLevel {
+    GameLevel {
+        name: "Third".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               "...",
+               "...",
+            ]),
+            row_count: vec![2, 1],
+            col_count: vec![1, 1, 1],
+        },
+    }
+}
+
+#[rustfmt::skip]
+pub fn study_trees() -> GameLevel {
+    GameLevel {
+        name: "Trees".into(),
+        puzzle: Puzzle {
+            field: parse_field(vec![
+               "..T.",
+               ".T..",
+            ]),
+            row_count: vec![2, 2],
+            col_count: vec![1, 1, 1, 1],
+        },
+    }
+}
+
 pub fn all_levels() -> Vec<GameLevel> {
     vec![
+        study_lines(),
+        study_2x2(),
+        study_2x3(),
+        study_trees(),
         mega_lakes_5x5(),
         lonely_mountain_5x5(),
         mountain_lakes_5x5(),

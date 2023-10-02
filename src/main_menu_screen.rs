@@ -86,7 +86,7 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
                         TextBundle::from_section(
                             "Skyland",
                             TextStyle {
-                                font: server.load("NotoSerif-SemiBold.ttf"),
+                                font: server.load("NanumBrushScript-Regular.ttf"),
                                 font_size: 80.0,
                                 color: TEXT_COLOR,
                                 ..default()

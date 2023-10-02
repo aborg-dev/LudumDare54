@@ -243,7 +243,9 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
             .iter()
             .all(|status| matches!(status, LineStatus::Match))
         && placement_violations.is_empty()
-        && constraint_violations.is_empty();
+        && constraint_violations
+            .iter()
+            .all(|v| matches!(v.violation, ConstraintViolationType::Match));
 
     ValidationResult {
         row_status,

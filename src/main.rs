@@ -18,16 +18,19 @@ mod select_level_screen;
 pub struct GameState {
     puzzle: level::Puzzle,
     solution: level::Solution,
+    name: String,
     current_level: usize,
     hints: Vec<Vec<bool>>,
 }
 
 impl GameState {
-    pub fn new(puzzle: level::Puzzle, current_level: usize) -> Self {
+    pub fn new(game_level: level::GameLevel, current_level: usize) -> Self {
+        let puzzle = game_level.puzzle;
         let (rows, cols) = puzzle.dims();
         Self {
             puzzle,
             solution: Solution::default(),
+            name: game_level.name,
             current_level,
             hints: vec![vec![false; cols]; rows],
         }
@@ -53,16 +56,16 @@ pub struct VolumeSettings {
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default, Copy)]
 pub enum AppState {
     InGame,
+    #[default]
     SwitchLevel,
     SelectLevelScreen,
-    #[default]
     MainMenuScreen,
 }
 
 fn setup(mut commands: Commands, server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
     let game_level = level::all_levels().swap_remove(0);
-    commands.insert_resource(GameState::new(game_level.puzzle, 0));
+    commands.insert_resource(GameState::new(game_level, 0));
     commands.insert_resource(TextureHandles {
         textures: [
             "cross_iso.png",

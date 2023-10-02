@@ -1,4 +1,5 @@
 use crate::level::*;
+use crate::AppState;
 use crate::GameState;
 use crate::VolumeSettings;
 use bevy::audio::PlaybackMode;
@@ -25,11 +26,23 @@ impl<S: States + Copy> Plugin for GameScreenPlugin<S> {
                     update_incorrect_placements,
                     update_cell_hints,
                     handle_mouse_input,
+                    button_system,
                 )
                     .run_if(in_state(self.0)),
             )
             .add_systems(OnExit(self.0), destroy_game_screen);
     }
+}
+
+// Tag component used to tag entities added on the game screen.
+#[derive(Component)]
+pub struct OnGameScreen;
+
+// All actions that can be triggered from a button click.
+#[derive(Component)]
+enum GameScreenButtonAction {
+    Back,
+    ToggleSound,
 }
 
 pub const CELL_SIZE: f32 = 150.0;
@@ -43,6 +56,8 @@ pub const AXIS_LAYER: f32 = 500.0;
 
 // Update if the size of the field grows beyond 10x10.
 pub const MAX_HOUSE_COUNT: usize = 100;
+
+const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 
 #[derive(Component, Default)]
 pub struct GameScreenRoot {
@@ -239,6 +254,65 @@ pub fn item_number_constraints(
     }
 }
 
+pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>) {
+    // Common style for all buttons on the screen
+    let button_style = Style {
+        width: Val::Px(250.0),
+        height: Val::Px(65.0),
+        margin: UiRect::all(Val::Px(20.0)),
+        justify_content: JustifyContent::Center,
+        align_items: AlignItems::Center,
+        ..default()
+    };
+
+    commands
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(10.0),
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::Center,
+                    ..default()
+                },
+                // background_color: Color::CRIMSON.into(),
+                ..default()
+            },
+            OnGameScreen,
+        ))
+        .with_children(|builder| {
+            builder
+                .spawn((
+                    ButtonBundle {
+                        style: button_style.clone(),
+                        background_color: NORMAL_BUTTON.into(),
+                        ..default()
+                    },
+                    GameScreenButtonAction::Back,
+                ))
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        "Back",
+                        TextStyle {
+                            font: server.load("NotoSerif-SemiBold.ttf"),
+                            font_size: 48.0,
+                            color: Color::WHITE,
+                            ..default()
+                        },
+                    ));
+                });
+            builder.spawn(TextBundle::from_section(
+                name,
+                TextStyle {
+                    font: server.load("NotoSerif-SemiBold.ttf"),
+                    font_size: 48.0,
+                    color: Color::WHITE,
+                    ..default()
+                },
+            ));
+        });
+}
+
 pub fn create_game_screen(
     mut commands: Commands,
     game_state: Res<GameState>,
@@ -296,18 +370,25 @@ pub fn create_game_screen(
             item_number_constraints(builder, &puzzle, &server);
         });
 
+    create_hud(&mut commands, &game_state.name, &server);
+
     commands.entity(game_screen_entity).insert(game_screen_root);
 }
 
 pub fn destroy_game_screen(
     mut commands: Commands,
     mut game_screen_query: Query<(Entity, &mut GameScreenRoot)>,
+    query: Query<Entity, With<OnGameScreen>>,
 ) {
     let (game_screen_entity, _) = game_screen_query.single_mut();
     let mut entity_commands = commands.entity(game_screen_entity);
     entity_commands.despawn_descendants();
     entity_commands.clear_children();
     entity_commands.despawn();
+
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
 }
 
 pub fn update_game_screen(
@@ -574,6 +655,32 @@ fn handle_mouse_input(
                     game_state.hints[r][c] ^= true;
                 }
             }
+        }
+    }
+}
+
+// This system handles changing all buttons color based on mouse interaction
+fn button_system(
+    mut interaction_query: Query<
+        (&Interaction, &mut BackgroundColor, &GameScreenButtonAction),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut app_state: ResMut<NextState<AppState>>,
+) {
+    for (interaction, mut color, action) in &mut interaction_query {
+        // *color = match *interaction {
+        //     Interaction::Pressed => PRESSED_BUTTON.into(),
+        //     Interaction::Hovered => HOVERED_BUTTON.into(),
+        //     Interaction::None => NORMAL_BUTTON.into(),
+        // };
+
+        if *interaction == Interaction::Pressed {
+            match *action {
+                GameScreenButtonAction::Back => {
+                    app_state.set(AppState::MainMenuScreen);
+                }
+                GameScreenButtonAction::ToggleSound => todo!(),
+            };
         }
     }
 }

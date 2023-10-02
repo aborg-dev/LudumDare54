@@ -236,9 +236,14 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
         }
     }
 
-    let complete = row_status.iter().all(|status| matches!(status, LineStatus::Match))
-        && col_status.iter().all(|status| matches!(status, LineStatus::Match))
-        && placement_violations.is_empty() && constraint_violations.is_empty();
+    let complete = row_status
+        .iter()
+        .all(|status| matches!(status, LineStatus::Match))
+        && col_status
+            .iter()
+            .all(|status| matches!(status, LineStatus::Match))
+        && placement_violations.is_empty()
+        && constraint_violations.is_empty();
 
     ValidationResult {
         row_status,
@@ -485,7 +490,7 @@ pub fn study_lines() -> GameLevel {
 #[rustfmt::skip]
 pub fn study_2x2() -> GameLevel {
     GameLevel {
-        name: "Neighbourhood".into(),
+        name: "Neighbors".into(),
         puzzle: Puzzle {
             field: parse_field(vec![
                "..",
@@ -500,7 +505,7 @@ pub fn study_2x2() -> GameLevel {
 #[rustfmt::skip]
 pub fn study_2x3() -> GameLevel {
     GameLevel {
-        name: "Third".into(),
+        name: "Meadow".into(),
         puzzle: Puzzle {
             field: parse_field(vec![
                "...",

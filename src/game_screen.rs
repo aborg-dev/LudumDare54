@@ -279,7 +279,6 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
                     align_items: AlignItems::Center,
                     ..default()
                 },
-                // background_color: Color::CRIMSON.into(),
                 ..default()
             },
             OnGameScreen,
@@ -297,9 +296,9 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
             builder.spawn(TextBundle::from_section(
                 name,
                 TextStyle {
-                    font: server.load("NotoSerif-SemiBold.ttf"),
-                    font_size: 48.0,
-                    color: Color::ORANGE,
+                    font: server.load(crate::TEXT_FONT_NAME),
+                    font_size: 80.0,
+                    color: crate::CUSTOM_ORANGE,
                     ..default()
                 },
             ));
@@ -369,10 +368,11 @@ pub fn create_game_screen(
     //     .entity(game_screen_entity)
     //     .with_children(|builder| {
     //         builder.spawn(SpriteBundle {
-    //             texture: server.load("full.png"),
+    //             // texture: server.load("full.png"),
     //             sprite: Sprite {
-    //                 custom_size: Some(Vec2::new(window.height(), window.width())),
+    //                 // custom_size: Some(Vec2::new(window.height(), window.width())),
     //                 anchor: Anchor::CenterLeft,
+    //                 color: crate::SKY_COLOR,
     //                 ..Default::default()
     //             },
     //             ..Default::default()

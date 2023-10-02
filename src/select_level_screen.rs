@@ -76,12 +76,12 @@ pub fn create_select_level_screen(mut commands: Commands, server: Res<AssetServe
                         column_gap: Val::Px(12.0),
                         ..default()
                     },
-                    background_color: BackgroundColor(Color::DARK_GRAY),
+                    background_color: BackgroundColor(crate::SKY_COLOR),
                     ..default()
                 })
                 .with_children(|builder| {
                     for (index, level) in all_levels().iter().enumerate() {
-                        item_level(builder, index, level, server.load("NotoSerif-SemiBold.ttf"));
+                        item_level(builder, index, level, server.load(crate::TEXT_FONT_NAME));
                     }
                 });
         })
@@ -107,6 +107,7 @@ fn item_level(builder: &mut ChildBuilder, index: usize, level: &GameLevel, font:
                     ..default()
                 },
                 background_color: BackgroundColor(BUTTON_COLOR),
+                border_color: BorderColor(Color::BLACK),
                 ..default()
             },
             LevelIndex { index },
@@ -116,8 +117,8 @@ fn item_level(builder: &mut ChildBuilder, index: usize, level: &GameLevel, font:
                 level.name.clone(),
                 TextStyle {
                     font,
-                    font_size: 24.0,
-                    color: Color::BLACK,
+                    font_size: 48.0,
+                    color: Color::WHITE,
                 },
             ));
         });

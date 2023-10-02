@@ -3,8 +3,8 @@ use crate::GameState;
 use bevy::math::Vec2;
 use bevy::prelude::*;
 use bevy::sprite::*;
-use std::default::Default;
 use rand::prelude::*;
+use std::default::Default;
 
 pub const CELL_SIZE: f32 = 150.0;
 
@@ -161,7 +161,11 @@ pub fn create_level_render(
                     },
                 )
                 .with_alignment(TextAlignment::Center),
-                transform: Transform::from_xyz(ix + CELL_SIZE * 0.35, iy + CELL_SIZE * 0.3, z + TEXT_LAYER),
+                transform: Transform::from_xyz(
+                    ix + CELL_SIZE * 0.35,
+                    iy + CELL_SIZE * 0.3,
+                    z + TEXT_LAYER,
+                ),
                 ..default()
             };
             let id = commands
@@ -177,11 +181,7 @@ pub fn create_level_render(
                             anchor: Anchor::CenterLeft,
                             ..Default::default()
                         },
-                        transform: Transform::from_xyz(
-                            ix,
-                            iy,
-                            z + MARKER_LAYER,
-                        ),
+                        transform: Transform::from_xyz(ix, iy, z + MARKER_LAYER),
                         texture: server.load(format!("marker_iso_{rid}.png")),
                         visibility: Visibility::Hidden,
                         ..Default::default()
@@ -252,11 +252,7 @@ pub fn create_level_render(
                 text_style.clone(),
             )
             .with_alignment(TextAlignment::Center),
-            transform: Transform::from_xyz(
-                ix + 0.15 * CELL_SIZE,
-                iy + 0.3 * CELL_SIZE,
-                AXIS_LAYER,
-            ),
+            transform: Transform::from_xyz(ix + 0.15 * CELL_SIZE, iy + 0.3 * CELL_SIZE, AXIS_LAYER),
             ..default()
         };
         let id = commands
@@ -308,11 +304,7 @@ pub fn update_placements_render(
 
                 let z = ((cols - c + 1) + r) as f32 * 0.1;
 
-                *transform = Transform::from_xyz(
-                    ix,
-                    iy,
-                    z + CELL_LAYER,
-                );
+                *transform = Transform::from_xyz(ix, iy, z + CELL_LAYER);
             } else {
                 *visibility = Visibility::Hidden;
             }

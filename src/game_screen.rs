@@ -1,3 +1,4 @@
+use crate::SKY_COLOR;
 use crate::level::*;
 use crate::AppState;
 use crate::GameState;
@@ -29,12 +30,24 @@ impl<S: States + Copy> Plugin for GameScreenPlugin<S> {
                     detect_complete_level,
                     handle_mouse_input,
                     button_system,
+                    // ui_apply_fixed_z
                 )
                     .run_if(in_state(self.0)),
             )
             .add_systems(OnExit(self.0), destroy_game_screen);
     }
 }
+
+// #[derive(Debug, Component)]
+// pub(crate) struct UiFixedZ {
+//     pub z: f32,
+// }
+//
+// pub(crate) fn ui_apply_fixed_z(mut node_query: Query<(&mut Transform, &UiFixedZ), With<Node>>) {
+//     for (mut transform, fixed) in node_query.iter_mut() {
+//         transform.translation.z = fixed.z;
+//     }
+// }
 
 // Tag component used to tag entities added on the game screen.
 #[derive(Component)]
@@ -272,10 +285,12 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
                     justify_content: JustifyContent::SpaceBetween,
                     ..default()
                 },
-                // background_color: BackgroundColor(Color::RED),
+                // image: UiImage::new(server.load("full.png")),
+                // background_color: BackgroundColor(SKY_COLOR),
                 ..default()
             },
             OnGameScreen,
+            // UiFixedZ { z: -0.5 },
         ))
         .with_children(|builder| {
             builder
@@ -357,12 +372,12 @@ pub fn create_game_screen(
     mut commands: Commands,
     game_state: Res<GameState>,
     server: Res<AssetServer>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
     let game_screen_entity = commands.spawn(SpatialBundle::default()).id();
     // This component is added to the entity in the end of this function.
     let mut game_screen_root = GameScreenRoot::default();
-    let window = window_query.single();
+
+    create_hud(&mut commands, &game_state.name, &server);
 
     let puzzle = &game_state.puzzle;
     let (rows, cols) = puzzle.dims();
@@ -373,39 +388,6 @@ pub fn create_game_screen(
             game_screen_root.random_number[r][c] = rng.gen();
         }
     }
-
-    // commands
-    //     .entity(game_screen_entity)
-    //     .with_children(|builder| {
-    //         builder.spawn((
-    //             SpriteBundle {
-    //                 texture: server.load("complete.png"),
-    //                 sprite: Sprite {
-    //                     custom_size: Some(Vec2::new(300.0, 100.0)),
-    //                     anchor: Anchor::TopRight,
-    //                     ..Default::default()
-    //                 },
-    //                 visibility: Visibility::Visible,
-    //                 ..Default::default()
-    //             },
-    //             CompleteBanner,
-    //         ));
-    //     });
-
-    // commands
-    //     .entity(game_screen_entity)
-    //     .with_children(|builder| {
-    //         builder.spawn(SpriteBundle {
-    //             // texture: server.load("full.png"),
-    //             sprite: Sprite {
-    //                 // custom_size: Some(Vec2::new(window.height(), window.width())),
-    //                 anchor: Anchor::CenterLeft,
-    //                 color: crate::SKY_COLOR,
-    //                 ..Default::default()
-    //             },
-    //             ..Default::default()
-    //         });
-    //     });
 
     // assert_eq!(rows, cols);
     for r in 0..rows {
@@ -444,8 +426,6 @@ pub fn create_game_screen(
         .with_children(|builder| {
             item_number_constraints(builder, &puzzle, &server);
         });
-
-    create_hud(&mut commands, &game_state.name, &server);
 
     commands.entity(game_screen_entity).insert(game_screen_root);
 }

@@ -26,7 +26,7 @@ pub struct SelectLevelScreenRoot {
 
 pub fn create_select_level_screen(mut commands: Commands, server: Res<AssetServer>) {
     let id = commands
-        .spawn(NodeBundle {
+        .spawn(ImageBundle {
             style: Style {
                 /// Use the CSS Grid algorithm for laying out this node
                 display: Display::Grid,
@@ -48,7 +48,7 @@ pub fn create_select_level_screen(mut commands: Commands, server: Res<AssetServe
                 ],
                 ..default()
             },
-            background_color: BackgroundColor(Color::WHITE),
+            image: UiImage::new(server.load("full.png")),
             ..default()
         })
         .with_children(|builder| {
@@ -76,7 +76,6 @@ pub fn create_select_level_screen(mut commands: Commands, server: Res<AssetServe
                         column_gap: Val::Px(12.0),
                         ..default()
                     },
-                    background_color: BackgroundColor(Color::GRAY),
                     ..default()
                 })
                 .with_children(|builder| {

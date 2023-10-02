@@ -15,9 +15,8 @@ impl<S: States + Copy> Plugin for MainMenuScreenPlugin<S> {
     }
 }
 
-const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
+const NORMAL_BUTTON: Color = Color::WHITE;
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
-const HOVERED_PRESSED_BUTTON: Color = Color::rgb(0.25, 0.65, 0.25);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 const TEXT_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
 
@@ -102,69 +101,36 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
                     );
 
                     // Display three buttons for each action available from the main menu:
-                    // - new game
-                    // - settings
-                    // - quit
-                    parent
-                        .spawn((
-                            ButtonBundle {
-                                style: button_style.clone(),
-                                background_color: NORMAL_BUTTON.into(),
-                                ..default()
-                            },
-                            MenuButtonAction::Play,
-                        ))
-                        .with_children(|parent| {
-                            let icon = server.load("textures/Game Icons/right.png");
-                            parent.spawn(ImageBundle {
-                                style: button_icon_style.clone(),
-                                image: UiImage::new(icon),
-                                ..default()
-                            });
-                            parent.spawn(TextBundle::from_section(
-                                "New Game",
-                                button_text_style.clone(),
-                            ));
-                        });
-                    parent
-                        .spawn((
-                            ButtonBundle {
-                                style: button_style.clone(),
-                                background_color: NORMAL_BUTTON.into(),
-                                ..default()
-                            },
-                            MenuButtonAction::Levels,
-                        ))
-                        .with_children(|parent| {
-                            let icon = server.load("textures/Game Icons/wrench.png");
-                            parent.spawn(ImageBundle {
-                                style: button_icon_style.clone(),
-                                image: UiImage::new(icon),
-                                ..default()
-                            });
-                            parent.spawn(TextBundle::from_section(
-                                "Levels",
-                                button_text_style.clone(),
-                            ));
-                        });
-                    parent
-                        .spawn((
-                            ButtonBundle {
-                                style: button_style,
-                                background_color: NORMAL_BUTTON.into(),
-                                ..default()
-                            },
-                            MenuButtonAction::Quit,
-                        ))
-                        .with_children(|parent| {
-                            let icon = server.load("textures/Game Icons/exitRight.png");
-                            parent.spawn(ImageBundle {
-                                style: button_icon_style,
-                                image: UiImage::new(icon),
-                                ..default()
-                            });
-                            parent.spawn(TextBundle::from_section("Quit", button_text_style));
-                        });
+                    // - Play
+                    // - Levels
+                    // - Quit
+                    parent.spawn((
+                        ButtonBundle {
+                            style: button_style.clone(),
+                            background_color: NORMAL_BUTTON.into(),
+                            image: UiImage::new(server.load("button_play.png")),
+                            ..default()
+                        },
+                        MenuButtonAction::Play,
+                    ));
+                    parent.spawn((
+                        ButtonBundle {
+                            style: button_style.clone(),
+                            background_color: NORMAL_BUTTON.into(),
+                            image: UiImage::new(server.load("button_levels.png")),
+                            ..default()
+                        },
+                        MenuButtonAction::Levels,
+                    ));
+                    parent.spawn((
+                        ButtonBundle {
+                            style: button_style,
+                            background_color: NORMAL_BUTTON.into(),
+                            image: UiImage::new(server.load("button_quit.png")),
+                            ..default()
+                        },
+                        MenuButtonAction::Quit,
+                    ));
                 });
         });
 }

@@ -56,9 +56,9 @@ pub struct VolumeSettings {
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default, Copy)]
 pub enum AppState {
     InGame,
-    #[default]
     SwitchLevel,
     SelectLevelScreen,
+    #[default]
     MainMenuScreen,
 }
 
@@ -69,6 +69,8 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
     commands.insert_resource(TextureHandles {
         textures: [
             "cross_iso.png",
+            "button_play.png",
+            "button_levels.png",
             "empty.png",
             "forest_iso.png",
             "house_iso.png",

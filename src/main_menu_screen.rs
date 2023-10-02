@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::app::AppExit;
 
 use crate::AppState;
 
@@ -148,6 +149,7 @@ fn button_system(
         (Changed<Interaction>, With<Button>),
     >,
     mut app_state: ResMut<NextState<AppState>>,
+    mut exit: EventWriter<AppExit>,
 ) {
     for (interaction, mut color, action) in &mut interaction_query {
         *color = match *interaction {
@@ -164,7 +166,9 @@ fn button_system(
                 MenuButtonAction::Levels => {
                     app_state.set(AppState::SelectLevelScreen);
                 }
-                MenuButtonAction::Quit => todo!(),
+                MenuButtonAction::Quit => {
+                    exit.send(AppExit);
+                }
             };
         }
     }

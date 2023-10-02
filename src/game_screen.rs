@@ -269,6 +269,7 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
                     // height: Val::Percent(10.0),
                     flex_direction: FlexDirection::Column,
                     align_items: AlignItems::Center,
+                    justify_content: JustifyContent::SpaceBetween,
                     ..default()
                 },
                 // background_color: BackgroundColor(Color::RED),
@@ -331,23 +332,21 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
                     ));
                 });
 
-            // builder.spawn((
-            //     ButtonBundle {
-            //         style: Style {
-            //             width: Val::Px(200.0),
-            //             height: Val::Px(50.0),
-            //             margin: UiRect::left(Val::Px(100.0)),
-            //             justify_content: JustifyContent::Center,
-            //             align_items: AlignItems::Center,
-            //             ..default()
-            //         },
-            //         image: UiImage::new(server.load("continue.png")),
-            //         visibility: Visibility::Hidden,
-            //         ..Default::default()
-            //     },
-            //     CompleteBanner,
-            //     GameScreenButtonAction::Complete,
-            // ));
+            builder.spawn((
+                ButtonBundle {
+                    style: Style {
+                        width: Val::Px(280.0),
+                        height: Val::Px(90.0),
+                        margin: UiRect::all(Val::Px(20.0)),
+                        ..default()
+                    },
+                    image: UiImage::new(server.load("button_next_level.png")),
+                    visibility: Visibility::Hidden,
+                    ..Default::default()
+                },
+                CompleteBanner,
+                GameScreenButtonAction::Complete,
+            ));
         });
 }
 

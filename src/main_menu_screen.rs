@@ -123,7 +123,7 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
                     ));
                     parent.spawn((
                         ButtonBundle {
-                            style: button_style,
+                            style: button_style.clone(),
                             background_color: NORMAL_BUTTON.into(),
                             image: UiImage::new(server.load("button_quit.png")),
                             ..default()

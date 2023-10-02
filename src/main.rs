@@ -79,6 +79,7 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
             "button_snd_on.png",
             "button_snd_off.png",
             "button_snd_low.png",
+            "button_next_level.png",
             "continue.png",
             "empty.png",
             "forest_iso.png",

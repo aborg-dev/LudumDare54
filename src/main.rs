@@ -119,6 +119,7 @@ fn switch_levels(mut game_state: ResMut<GameState>, mut app_state: ResMut<NextSt
     let game_level = level::all_levels().swap_remove(game_state.current_level);
     game_state.puzzle = game_level.puzzle;
     game_state.solution = Solution::default();
+    game_state.name = game_level.name;
     game_state.hints = vec![vec![false; game_state.puzzle.cols()]; game_state.puzzle.rows()];
     app_state.set(AppState::InGame);
 }

@@ -58,6 +58,8 @@ pub const AXIS_LAYER: f32 = 500.0;
 pub const MAX_HOUSE_COUNT: usize = 100;
 
 const NORMAL_BUTTON: Color = Color::WHITE;
+const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
+const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
 #[derive(Component, Default)]
 pub struct GameScreenRoot {
@@ -281,27 +283,15 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
             OnGameScreen,
         ))
         .with_children(|builder| {
-            builder
-                .spawn((
-                    ButtonBundle {
-                        style: button_style.clone(),
-                        background_color: NORMAL_BUTTON.into(),
-                        image: UiImage::new(server.load("button_back.png")),
-                        ..default()
-                    },
-                    GameScreenButtonAction::Back,
-                ))
-                .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Back",
-                        TextStyle {
-                            font: server.load("NotoSerif-SemiBold.ttf"),
-                            font_size: 48.0,
-                            color: Color::WHITE,
-                            ..default()
-                        },
-                    ));
-                });
+            builder.spawn((
+                ButtonBundle {
+                    style: button_style.clone(),
+                    background_color: NORMAL_BUTTON.into(),
+                    image: UiImage::new(server.load("button_back.png")),
+                    ..default()
+                },
+                GameScreenButtonAction::Back,
+            ));
             builder.spawn(TextBundle::from_section(
                 name,
                 TextStyle {
@@ -669,11 +659,11 @@ fn button_system(
     mut app_state: ResMut<NextState<AppState>>,
 ) {
     for (interaction, mut color, action) in &mut interaction_query {
-        // *color = match *interaction {
-        //     Interaction::Pressed => PRESSED_BUTTON.into(),
-        //     Interaction::Hovered => HOVERED_BUTTON.into(),
-        //     Interaction::None => NORMAL_BUTTON.into(),
-        // };
+        *color = match *interaction {
+            Interaction::Pressed => PRESSED_BUTTON.into(),
+            Interaction::Hovered => HOVERED_BUTTON.into(),
+            Interaction::None => NORMAL_BUTTON.into(),
+        };
 
         if *interaction == Interaction::Pressed {
             match *action {

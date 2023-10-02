@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::AppState;
+
 pub struct MainMenuScreenPlugin<S: States + Copy>(pub S);
 
 impl<S: States + Copy> Plugin for MainMenuScreenPlugin<S> {
@@ -19,10 +21,6 @@ const HOVERED_PRESSED_BUTTON: Color = Color::rgb(0.25, 0.65, 0.25);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 const TEXT_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
 
-// Tag component used to mark which setting is currently selected
-#[derive(Component)]
-struct SelectedOption;
-
 // Tag component used to tag entities added on the main menu screen
 #[derive(Component)]
 struct OnMainMenuScreen;
@@ -32,10 +30,6 @@ struct OnMainMenuScreen;
 enum MenuButtonAction {
     Play,
     Levels,
-    SettingsDisplay,
-    SettingsSound,
-    BackToMainMenu,
-    BackToSettings,
     Quit,
 }
 
@@ -175,23 +169,39 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
         });
 }
 
-fn destroy_main_menu_screen() {}
+fn destroy_main_menu_screen(mut commands: Commands, query: Query<Entity, With<OnMainMenuScreen>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+}
 
 fn update_main_menu_screen() {}
 
 // This system handles changing all buttons color based on mouse interaction
 fn button_system(
     mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor, Option<&SelectedOption>),
+        (&Interaction, &mut BackgroundColor, &MenuButtonAction),
         (Changed<Interaction>, With<Button>),
     >,
+    mut app_state: ResMut<NextState<AppState>>,
 ) {
-    for (interaction, mut color, selected) in &mut interaction_query {
-        *color = match (*interaction, selected) {
-            (Interaction::Pressed, _) | (Interaction::None, Some(_)) => PRESSED_BUTTON.into(),
-            (Interaction::Hovered, Some(_)) => HOVERED_PRESSED_BUTTON.into(),
-            (Interaction::Hovered, None) => HOVERED_BUTTON.into(),
-            (Interaction::None, None) => NORMAL_BUTTON.into(),
+    for (interaction, mut color, action) in &mut interaction_query {
+        *color = match *interaction {
+            Interaction::Pressed => PRESSED_BUTTON.into(),
+            Interaction::Hovered => HOVERED_BUTTON.into(),
+            Interaction::None => NORMAL_BUTTON.into(),
+        };
+
+        if *interaction == Interaction::Pressed {
+            match *action {
+                MenuButtonAction::Play => {
+                    app_state.set(AppState::SwitchLevel);
+                },
+                MenuButtonAction::Levels => {
+                    app_state.set(AppState::SelectLevelScreen);
+                },
+                MenuButtonAction::Quit => todo!(),
+            };
         }
     }
 }

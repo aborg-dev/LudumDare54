@@ -7,10 +7,10 @@ use self::input::GameInputPlugin;
 use self::level::Solution;
 use self::select_level_screen::SelectLevelScreenPlugin;
 
+mod game_screen;
 mod input;
 mod level;
 mod select_level_screen;
-mod game_screen;
 
 #[derive(Resource)]
 pub struct GameState {
@@ -107,10 +107,7 @@ fn update_sounds(
     }
 }
 
-fn switch_levels(
-    mut game_state: ResMut<GameState>,
-    mut app_state: ResMut<NextState<AppState>>,
-) {
+fn switch_levels(mut game_state: ResMut<GameState>, mut app_state: ResMut<NextState<AppState>>) {
     let game_level = level::all_levels().swap_remove(game_state.current_level);
     game_state.puzzle = game_level.puzzle;
     game_state.solution = Solution::default();

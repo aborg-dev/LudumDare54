@@ -1,6 +1,6 @@
-use crate::VolumeSettings;
 use crate::level::*;
 use crate::GameState;
+use crate::VolumeSettings;
 use bevy::audio::PlaybackMode;
 use bevy::audio::Volume;
 use bevy::math::Vec2;
@@ -94,21 +94,16 @@ pub fn create_level_render(
     server: Res<AssetServer>,
 ) {
     let mut level_render = LevelRender::default();
-    let level_render_entity = commands
-        .spawn(SpatialBundle::default())
-        .id();
+    let level_render_entity = commands.spawn(SpatialBundle::default()).id();
     // let (level_render_entity, mut level_render) = level_render_query.single_mut();
     let puzzle = &game_state.puzzle;
 
     let (rows, cols) = (puzzle.rows(), puzzle.cols());
-    let puzzle_height = rows as f32 * CELL_SIZE;
-
     let mut rng = StdRng::seed_from_u64(game_state.current_level as u64);
+    level_render.random_number = vec![vec![0; cols]; rows];
     for r in 0..rows {
-        level_render.random_number.push(vec![]);
         for c in 0..cols {
-            let id: u32 = rng.gen();
-            level_render.random_number[r].push(id);
+            level_render.random_number[r][c] = rng.gen();
         }
     }
 
@@ -311,7 +306,7 @@ pub fn update_level_render(
     let (_, _, mut transform) = level_render_query.single_mut();
     let puzzle = &game_state.puzzle;
     let (rows, cols) = (puzzle.rows(), puzzle.cols());
-    let (puzzle_width, puzzle_height) = (cols as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
+    let (puzzle_width, _puzzle_height) = (cols as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
     transform.translation = Vec3::new(-puzzle_width / 2.0, 0.0, 0.0);
 }
 
@@ -321,8 +316,7 @@ pub fn update_placements_render(
     mut sprites_query: Query<(&mut Transform, &mut Visibility)>,
 ) {
     let level_render = level_render_query.single();
-    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.cols());
-
+    let (_rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.cols());
     for i in 0..100 {
         let id = level_render.placements[i];
         if let Ok((mut transform, mut visibility)) = sprites_query.get_mut(id) {

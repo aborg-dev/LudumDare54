@@ -87,6 +87,104 @@ pub fn get_cell_texture(server: &Res<AssetServer>, cell_type: CellType) -> Handl
     }
 }
 
+pub fn item_cell(
+    builder: &mut ChildBuilder,
+    r: usize,
+    c: usize,
+    puzzle: &Puzzle,
+    rid: u32,
+    server: &Res<AssetServer>,
+) {
+    let (_rows, cols) = puzzle.dims();
+    let cell_type = puzzle.field[r][c];
+
+    let z = ((cols - c + 1) + r) as f32 * 0.1;
+
+    let texture = get_cell_texture(&server, cell_type);
+
+    let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
+    let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
+
+    let grass_texture = if (r + c) % 2 == 0 {
+        server.load(format!("grass_iso_dark_{rid}.png"))
+    } else {
+        server.load(format!("grass_iso_light_{rid}.png"))
+    };
+    builder.spawn(SpriteBundle {
+        sprite: Sprite {
+            custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
+            anchor: Anchor::CenterLeft,
+            ..Default::default()
+        },
+        transform: Transform::from_xyz(ix, iy, z + GRASS_LAYER),
+        texture: grass_texture,
+        ..Default::default()
+    });
+
+    if cell_type != CellType::Grass {
+        builder.spawn(SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
+                anchor: Anchor::CenterLeft,
+                ..Default::default()
+            },
+            transform: Transform::from_xyz(ix, iy, z + CELL_LAYER),
+            texture,
+            ..Default::default()
+        });
+    }
+
+    builder.spawn((
+        SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
+                anchor: Anchor::CenterLeft,
+                ..Default::default()
+            },
+            transform: Transform::from_xyz(ix, iy, z + CROSS_LAYER),
+            texture: server.load("cross_iso.png"),
+            ..Default::default()
+        },
+        IncorrectPlacement { row: r, col: c },
+    ));
+
+    let constraint_text = match cell_type {
+        CellType::Lake => "3",
+        CellType::Mountain => "2",
+        _ => "",
+    };
+    let text_bundle = Text2dBundle {
+        text: Text::from_section(
+            constraint_text,
+            TextStyle {
+                font: server.load("NotoSerif-SemiBold.ttf"),
+                font_size: 32.0,
+                color: Color::GRAY,
+                ..default()
+            },
+        )
+        .with_alignment(TextAlignment::Center),
+        transform: Transform::from_xyz(ix + CELL_SIZE * 0.35, iy + CELL_SIZE * 0.3, z + TEXT_LAYER),
+        ..default()
+    };
+    builder.spawn((text_bundle, ConstraintViolationRender { row: r, col: c }));
+
+    builder.spawn((
+        SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
+                anchor: Anchor::CenterLeft,
+                ..Default::default()
+            },
+            transform: Transform::from_xyz(ix, iy, z + MARKER_LAYER),
+            texture: server.load(format!("marker_iso_{rid}.png")),
+            visibility: Visibility::Hidden,
+            ..Default::default()
+        },
+        CellHint { row: r, col: c },
+    ));
+}
+
 pub fn create_level_render(
     mut commands: Commands,
     game_state: Res<GameState>,
@@ -110,111 +208,12 @@ pub fn create_level_render(
     assert_eq!(rows, cols);
     for r in 0..rows {
         for c in 0..cols {
-            let z = ((cols - c + 1) + r) as f32 * 0.1;
-
-            let texture = get_cell_texture(&server, puzzle.field[r][c]);
-
-            let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
-            let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
-
             let rid = level_render.random_number[r][c] % 3 + 1;
-            let grass_texture = if (r + c) % 2 == 0 {
-                server.load(format!("grass_iso_dark_{rid}.png"))
-            } else {
-                server.load(format!("grass_iso_light_{rid}.png"))
-            };
-            let id = commands
-                .spawn(SpriteBundle {
-                    sprite: Sprite {
-                        custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
-                        anchor: Anchor::CenterLeft,
-                        ..Default::default()
-                    },
-                    transform: Transform::from_xyz(ix, iy, z + GRASS_LAYER),
-                    texture: grass_texture,
-                    ..Default::default()
-                })
-                .id();
-            commands.entity(level_render_entity).add_child(id);
-
-            if puzzle.field[r][c] != CellType::Grass {
-                let id = commands
-                    .spawn(SpriteBundle {
-                        sprite: Sprite {
-                            custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
-                            anchor: Anchor::CenterLeft,
-                            ..Default::default()
-                        },
-                        transform: Transform::from_xyz(ix, iy, z + CELL_LAYER),
-                        texture,
-                        ..Default::default()
-                    })
-                    .id();
-                commands.entity(level_render_entity).add_child(id);
-            }
-
-            let id = commands
-                .spawn((
-                    SpriteBundle {
-                        sprite: Sprite {
-                            custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
-                            anchor: Anchor::CenterLeft,
-                            ..Default::default()
-                        },
-                        transform: Transform::from_xyz(ix, iy, z + CROSS_LAYER),
-                        texture: server.load("cross_iso.png"),
-                        ..Default::default()
-                    },
-                    IncorrectPlacement { row: r, col: c },
-                ))
-                .id();
-            commands.entity(level_render_entity).add_child(id);
-
-            let constraint_text = match puzzle.field[r][c] {
-                CellType::Lake => "3",
-                CellType::Mountain => "2",
-                _ => "",
-            };
-            let text_bundle = Text2dBundle {
-                text: Text::from_section(
-                    constraint_text,
-                    TextStyle {
-                        font: server.load("NotoSerif-SemiBold.ttf"),
-                        font_size: 32.0,
-                        color: Color::GRAY,
-                        ..default()
-                    },
-                )
-                .with_alignment(TextAlignment::Center),
-                transform: Transform::from_xyz(
-                    ix + CELL_SIZE * 0.35,
-                    iy + CELL_SIZE * 0.3,
-                    z + TEXT_LAYER,
-                ),
-                ..default()
-            };
-            let id = commands
-                .spawn((text_bundle, ConstraintViolationRender { row: r, col: c }))
-                .id();
-            commands.entity(level_render_entity).add_child(id);
-
-            let id = commands
-                .spawn((
-                    SpriteBundle {
-                        sprite: Sprite {
-                            custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
-                            anchor: Anchor::CenterLeft,
-                            ..Default::default()
-                        },
-                        transform: Transform::from_xyz(ix, iy, z + MARKER_LAYER),
-                        texture: server.load(format!("marker_iso_{rid}.png")),
-                        visibility: Visibility::Hidden,
-                        ..Default::default()
-                    },
-                    CellHint { row: r, col: c },
-                ))
-                .id();
-            commands.entity(level_render_entity).add_child(id);
+            commands
+                .entity(level_render_entity)
+                .with_children(|builder| {
+                    item_cell(builder, r, c, &puzzle, rid, &server);
+                });
         }
     }
 
@@ -248,11 +247,8 @@ pub fn create_level_render(
         let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
 
         let text_bundle = Text2dBundle {
-            text: Text::from_section(
-                puzzle.row_count[r].to_string(),
-                text_style.clone(),
-            )
-            .with_alignment(TextAlignment::Center),
+            text: Text::from_section(puzzle.row_count[r].to_string(), text_style.clone())
+                .with_alignment(TextAlignment::Center),
             transform: Transform::from_xyz(
                 ix + 0.35 * CELL_SIZE,
                 iy + 0.05 * CELL_SIZE,
@@ -272,11 +268,8 @@ pub fn create_level_render(
         let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
 
         let text_bundle = Text2dBundle {
-            text: Text::from_section(
-                puzzle.col_count[c].to_string(),
-                text_style.clone(),
-            )
-            .with_alignment(TextAlignment::Center),
+            text: Text::from_section(puzzle.col_count[c].to_string(), text_style.clone())
+                .with_alignment(TextAlignment::Center),
             transform: Transform::from_xyz(ix + 0.15 * CELL_SIZE, iy + 0.3 * CELL_SIZE, AXIS_LAYER),
             ..default()
         };

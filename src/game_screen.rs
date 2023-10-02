@@ -25,6 +25,7 @@ impl<S: States + Copy> Plugin for GameScreenPlugin<S> {
                     update_buildings_required,
                     update_incorrect_placements,
                     update_cell_hints,
+                    detect_complete_level,
                     handle_mouse_input,
                     button_system,
                 )
@@ -43,6 +44,7 @@ pub struct OnGameScreen;
 enum GameScreenButtonAction {
     Back,
     ToggleSound,
+    Complete,
 }
 
 pub const CELL_SIZE: f32 = 150.0;
@@ -301,8 +303,28 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
                     ..default()
                 },
             ));
+            builder.spawn((
+                ButtonBundle {
+                    style: Style {
+                        width: Val::Px(200.0),
+                        height: Val::Px(50.0),
+                        margin: UiRect::left(Val::Px(100.0)),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    image: UiImage::new(server.load("continue.png")),
+                    visibility: Visibility::Hidden,
+                    ..Default::default()
+                },
+                CompleteBanner,
+                GameScreenButtonAction::Complete,
+            ));
         });
 }
+
+#[derive(Component)]
+pub struct CompleteBanner;
 
 pub fn create_game_screen(
     mut commands: Commands,
@@ -324,6 +346,24 @@ pub fn create_game_screen(
             game_screen_root.random_number[r][c] = rng.gen();
         }
     }
+
+    // commands
+    //     .entity(game_screen_entity)
+    //     .with_children(|builder| {
+    //         builder.spawn((
+    //             SpriteBundle {
+    //                 texture: server.load("complete.png"),
+    //                 sprite: Sprite {
+    //                     custom_size: Some(Vec2::new(300.0, 100.0)),
+    //                     anchor: Anchor::TopRight,
+    //                     ..Default::default()
+    //                 },
+    //                 visibility: Visibility::Visible,
+    //                 ..Default::default()
+    //             },
+    //             CompleteBanner,
+    //         ));
+    //     });
 
     // commands
     //     .entity(game_screen_entity)
@@ -552,6 +592,17 @@ pub fn update_cell_hints(
     }
 }
 
+fn detect_complete_level(
+    game_state: Res<GameState>,
+    mut complete_banner: Query<&mut Visibility, With<CompleteBanner>>,
+) {
+    let validation_result = validate_solution(&game_state.solution, &game_state.puzzle);
+    if validation_result.complete {
+        let mut visibility = complete_banner.get_single_mut().unwrap();
+        *visibility = Visibility::Visible;
+    }
+}
+
 fn handle_mouse_input(
     mouse: Res<Input<MouseButton>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
@@ -672,6 +723,7 @@ fn button_system(
         (&Interaction, &mut BackgroundColor, &GameScreenButtonAction),
         (Changed<Interaction>, With<Button>),
     >,
+    mut game_state: ResMut<GameState>,
     mut app_state: ResMut<NextState<AppState>>,
 ) {
     for (interaction, mut color, action) in &mut interaction_query {
@@ -687,6 +739,12 @@ fn button_system(
                     app_state.set(AppState::MainMenuScreen);
                 }
                 GameScreenButtonAction::ToggleSound => todo!(),
+                GameScreenButtonAction::Complete => {
+                    if game_state.current_level + 1 < all_levels().len() {
+                        game_state.current_level += 1;
+                        app_state.set(AppState::SwitchLevel);
+                    }
+                }
             };
         }
     }

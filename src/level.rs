@@ -142,6 +142,7 @@ pub struct ValidationResult {
     pub col_status: Vec<LineStatus>,
     pub placement_violations: Vec<PlacementViolation>,
     pub constraint_violations: Vec<ConstraintViolation>,
+    pub complete: bool,
 }
 
 impl fmt::Display for ValidationResult {
@@ -235,11 +236,16 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
         }
     }
 
+    let complete = row_status.iter().all(|status| matches!(status, LineStatus::Match))
+        && col_status.iter().all(|status| matches!(status, LineStatus::Match))
+        && placement_violations.is_empty() && constraint_violations.is_empty();
+
     ValidationResult {
         row_status,
         col_status,
         placement_violations,
         constraint_violations,
+        complete,
     }
 }
 

@@ -7,6 +7,16 @@ use bevy::ui::{Style, UiRect, Val};
 use crate::level::{all_levels, GameLevel};
 use crate::{AppState, GameState};
 
+pub struct SelectLevelScreenPlugin<S: States + Copy>(pub S);
+
+impl<S: States + Copy> Plugin for SelectLevelScreenPlugin<S> {
+    fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(self.0), create_select_level_screen)
+            .add_systems(Update, (handle_button_click).run_if(in_state(self.0)))
+            .add_systems(OnExit(self.0), destroy_select_level_screen);
+    }
+}
+
 #[derive(Resource)]
 pub struct SelectLevelScreenRoot {
     root: Entity,
@@ -111,7 +121,7 @@ fn item_level(builder: &mut ChildBuilder, index: usize, level: &GameLevel, font:
         });
 }
 
-pub fn button_system(
+pub fn handle_button_click(
     mut interaction_query: Query<(&Interaction, &LevelIndex), Changed<Interaction>>,
     mut app_state: ResMut<NextState<AppState>>,
     mut game_state: ResMut<GameState>,

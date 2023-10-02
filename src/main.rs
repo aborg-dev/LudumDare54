@@ -4,6 +4,7 @@ use bevy::window::{close_on_esc, WindowMode};
 
 use self::input::GameInputPlugin;
 use self::level::Solution;
+use self::select_level_screen::SelectLevelScreenPlugin;
 
 mod input;
 mod level;
@@ -46,7 +47,7 @@ pub struct VolumeSettings {
     pub volume: f32,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default, Copy)]
 pub enum AppState {
     InGame,
     #[default]
@@ -139,18 +140,7 @@ fn main() {
         .add_systems(OnEnter(AppState::InGame), render::create_level_render)
         .add_systems(OnExit(AppState::InGame), render::destroy_level_render)
         .add_systems(OnEnter(AppState::SwitchLevel), switch_levels)
-        .add_systems(
-            OnEnter(AppState::SelectLevelScreen),
-            select_level_screen::create_select_level_screen,
-        )
-        .add_systems(
-            OnExit(AppState::SelectLevelScreen),
-            select_level_screen::destroy_select_level_screen,
-        )
-        .add_systems(
-            Update,
-            (select_level_screen::button_system,).run_if(in_state(AppState::SelectLevelScreen)),
-        )
+        .add_plugins(SelectLevelScreenPlugin(AppState::SelectLevelScreen))
         .add_systems(
             Update,
             (

@@ -17,6 +17,8 @@ impl<S: States + Copy> Plugin for SelectLevelScreenPlugin<S> {
     }
 }
 
+const BUTTON_COLOR: Color = Color::rgb(239.0 / 256.0, 167.0 / 256.0, 115.0 / 256.0);
+
 #[derive(Resource)]
 pub struct SelectLevelScreenRoot {
     root: Entity,
@@ -104,7 +106,7 @@ fn item_level(builder: &mut ChildBuilder, index: usize, level: &GameLevel, font:
                     padding: UiRect::all(Val::Px(3.0)),
                     ..default()
                 },
-                background_color: BackgroundColor(Color::ORANGE),
+                background_color: BackgroundColor(BUTTON_COLOR),
                 ..default()
             },
             LevelIndex { index },

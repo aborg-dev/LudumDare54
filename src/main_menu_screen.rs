@@ -18,7 +18,7 @@ impl<S: States + Copy> Plugin for MainMenuScreenPlugin<S> {
 const NORMAL_BUTTON: Color = Color::WHITE;
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
-const TEXT_COLOR: Color = Color::ORANGE;
+const TEXT_COLOR: Color = Color::rgb(239.0 / 256.0, 167.0 / 256.0, 115.0 / 256.0);
 
 const RULES: &str = "
 Welcome to Skyland -- a flying island with green-green grass, forests, lakes, mountains, and... houses! 
@@ -52,20 +52,6 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
         margin: UiRect::all(Val::Px(20.0)),
         justify_content: JustifyContent::Center,
         align_items: AlignItems::Center,
-        ..default()
-    };
-    let button_icon_style = Style {
-        width: Val::Px(30.0),
-        // This takes the icons out of the flexbox flow, to be positioned exactly
-        position_type: PositionType::Absolute,
-        // The icon will be close to the left border of the button
-        left: Val::Px(10.0),
-        ..default()
-    };
-    let button_text_style = TextStyle {
-        font: server.load("NotoSerif-SemiBold.ttf"),
-        font_size: 40.0,
-        color: TEXT_COLOR,
         ..default()
     };
 

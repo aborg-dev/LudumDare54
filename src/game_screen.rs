@@ -1,10 +1,36 @@
+use crate::VolumeSettings;
 use crate::level::*;
 use crate::GameState;
+use bevy::audio::PlaybackMode;
+use bevy::audio::Volume;
 use bevy::math::Vec2;
+use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
 use bevy::sprite::*;
+use bevy::window::PrimaryWindow;
 use rand::prelude::*;
 use std::default::Default;
+
+pub struct GameScreenPlugin<S: States + Copy>(pub S);
+
+impl<S: States + Copy> Plugin for GameScreenPlugin<S> {
+    fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(self.0), create_level_render)
+            .add_systems(
+                Update,
+                (
+                    update_level_render,
+                    update_placements_render,
+                    update_buildings_required,
+                    update_incorrect_placements,
+                    update_cell_hints,
+                    handle_mouse_input,
+                )
+                    .run_if(in_state(self.0)),
+            )
+            .add_systems(OnExit(self.0), destroy_level_render);
+    }
+}
 
 pub const CELL_SIZE: f32 = 150.0;
 
@@ -64,10 +90,14 @@ pub fn get_cell_texture(server: &Res<AssetServer>, cell_type: CellType) -> Handl
 pub fn create_level_render(
     mut commands: Commands,
     game_state: Res<GameState>,
-    mut level_render_query: Query<(Entity, &mut LevelRender)>,
+    // mut level_render_query: Query<(Entity, &mut LevelRender)>,
     server: Res<AssetServer>,
 ) {
-    let (level_render_entity, mut level_render) = level_render_query.single_mut();
+    let mut level_render = LevelRender::default();
+    let level_render_entity = commands
+        .spawn(SpatialBundle::default())
+        .id();
+    // let (level_render_entity, mut level_render) = level_render_query.single_mut();
     let puzzle = &game_state.puzzle;
 
     let (rows, cols) = (puzzle.rows(), puzzle.cols());
@@ -260,6 +290,8 @@ pub fn create_level_render(
             .id();
         commands.entity(level_render_entity).add_child(id);
     }
+
+    commands.entity(level_render_entity).insert(level_render);
 }
 
 pub fn destroy_level_render(
@@ -427,6 +459,120 @@ pub fn update_cell_hints(
 
             if game_state.hints[r][c] {
                 *visibility = Visibility::Inherited;
+            }
+        }
+    }
+}
+
+fn handle_mouse_input(
+    mouse: Res<Input<MouseButton>>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    level_render_query: Query<&Transform, With<LevelRender>>,
+    camera_query: Query<(&Camera, &GlobalTransform)>,
+    mut game_state: ResMut<GameState>,
+    mut commands: Commands,
+    server: Res<AssetServer>,
+) {
+    let level_transform = level_render_query.single();
+    let (camera, camera_global_transform) = camera_query.single();
+    let window = window_query.single();
+    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.cols());
+
+    let left_just_pressed = mouse.just_pressed(MouseButton::Left);
+    let right_just_pressed = mouse.just_pressed(MouseButton::Right);
+
+    let isometric_to_orthographic = |pi: Vec2| {
+        let pi = pi - level_transform.translation.xy();
+        let po = Vec2::new(pi.x + 2.0 * pi.y, pi.x - 2.0 * pi.y);
+        po / CELL_SIZE
+    };
+
+    if let Some(p) = window
+        .cursor_position()
+        .and_then(|cursor| camera.viewport_to_world_2d(camera_global_transform, cursor))
+        .map(isometric_to_orthographic)
+    {
+        let lower_bound = Vec2::new(0.0, 0.0);
+        let upper_bound = Vec2::new(cols as f32, rows as f32);
+        if p.cmpge(lower_bound).all() && p.cmplt(upper_bound).all() {
+            let position = Position {
+                row: p.y as usize,
+                col: p.x as usize,
+            };
+            let r = position.row;
+            let c = position.col;
+
+            if left_just_pressed
+                && game_state.puzzle.field[r][c] == CellType::Grass
+                && game_state
+                    .solution
+                    .placements
+                    .iter()
+                    .all(|x| !(x.position == position))
+            {
+                game_state.solution.placements.push(Placement { position });
+                game_state.hints[r][c] = false;
+
+                commands.spawn((
+                    AudioBundle {
+                        source: server.load("place.wav"),
+                        settings: PlaybackSettings {
+                            mode: PlaybackMode::Despawn,
+                            volume: Volume::new_absolute(0.0),
+                            speed: 1.2,
+                            ..default()
+                        },
+                        ..default()
+                    },
+                    VolumeSettings { volume: 0.6 },
+                ));
+            }
+
+            // Remove placements at this position.
+            if right_just_pressed {
+                if let Some(index) = game_state
+                    .solution
+                    .placements
+                    .iter()
+                    .position(|x| x.position == position)
+                {
+                    game_state.solution.placements.remove(index);
+                    commands.spawn((
+                        AudioBundle {
+                            source: server.load("remove.wav"),
+                            settings: PlaybackSettings {
+                                mode: PlaybackMode::Despawn,
+                                volume: Volume::new_absolute(0.0),
+                                speed: 1.2,
+                                ..default()
+                            },
+                            ..default()
+                        },
+                        VolumeSettings { volume: 0.5 },
+                    ));
+                    game_state.hints[r][c] = false;
+                } else if game_state.puzzle.field[r][c] == CellType::Grass {
+                    let source = if game_state.hints[r][c] {
+                        server.load("erase.wav")
+                    } else {
+                        server.load("draw.wav")
+                    };
+
+                    commands.spawn((
+                        AudioBundle {
+                            source,
+                            settings: PlaybackSettings {
+                                mode: PlaybackMode::Despawn,
+                                volume: Volume::new_absolute(0.0),
+                                speed: 0.9,
+                                ..default()
+                            },
+                            ..default()
+                        },
+                        VolumeSettings { volume: 0.12 },
+                    ));
+                    game_state.hints[r][c] ^= true;
+                }
             }
         }
     }

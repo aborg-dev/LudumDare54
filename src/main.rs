@@ -2,14 +2,15 @@ use bevy::audio::PlaybackMode;
 use bevy::prelude::*;
 use bevy::window::{close_on_esc, WindowMode};
 
+use self::game_screen::GameScreenPlugin;
 use self::input::GameInputPlugin;
 use self::level::Solution;
 use self::select_level_screen::SelectLevelScreenPlugin;
 
 mod input;
 mod level;
-mod render;
 mod select_level_screen;
+mod game_screen;
 
 #[derive(Resource)]
 pub struct GameState {
@@ -34,6 +35,7 @@ impl GameState {
 
 #[derive(Resource)]
 pub struct TextureHandles {
+    #[allow(dead_code)]
     textures: Vec<Handle<u32>>,
 }
 
@@ -106,11 +108,9 @@ fn update_sounds(
 }
 
 fn switch_levels(
-    mut commands: Commands,
     mut game_state: ResMut<GameState>,
     mut app_state: ResMut<NextState<AppState>>,
 ) {
-    commands.spawn((render::LevelRender::default(), SpatialBundle::default()));
     let game_level = level::all_levels().swap_remove(game_state.current_level);
     game_state.puzzle = game_level.puzzle;
     game_state.solution = Solution::default();
@@ -137,21 +137,9 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, close_on_esc)
         .add_systems(Update, update_sounds)
-        .add_systems(OnEnter(AppState::InGame), render::create_level_render)
-        .add_systems(OnExit(AppState::InGame), render::destroy_level_render)
         .add_systems(OnEnter(AppState::SwitchLevel), switch_levels)
         .add_plugins(SelectLevelScreenPlugin(AppState::SelectLevelScreen))
-        .add_systems(
-            Update,
-            (
-                render::update_level_render,
-                render::update_placements_render,
-                render::update_buildings_required,
-                render::update_incorrect_placements,
-                render::update_cell_hints,
-            )
-                .run_if(in_state(AppState::InGame)),
-        )
+        .add_plugins(GameScreenPlugin(AppState::InGame))
         .add_plugins(GameInputPlugin)
         .run();
 }

@@ -70,22 +70,22 @@ pub fn create_level_render(
     let (level_render_entity, mut level_render) = level_render_query.single_mut();
     let puzzle = &game_state.puzzle;
 
-    let (rows, columns) = (puzzle.rows(), puzzle.columns());
+    let (rows, cols) = (puzzle.rows(), puzzle.cols());
     let puzzle_height = rows as f32 * CELL_SIZE;
 
     let mut rng = StdRng::seed_from_u64(game_state.current_level as u64);
     for r in 0..rows {
         level_render.random_number.push(vec![]);
-        for c in 0..columns {
+        for c in 0..cols {
             let id: u32 = rng.gen();
             level_render.random_number[r].push(id);
         }
     }
 
-    assert_eq!(rows, columns);
+    assert_eq!(rows, cols);
     for r in 0..rows {
-        for c in 0..columns {
-            let z = ((columns - c + 1) + r) as f32 * 0.1;
+        for c in 0..cols {
+            let z = ((cols - c + 1) + r) as f32 * 0.1;
 
             let texture = get_cell_texture(&server, puzzle.field[r][c]);
 
@@ -218,7 +218,7 @@ pub fn create_level_render(
     };
 
     for r in 0..rows {
-        let c = columns;
+        let c = cols;
         let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
         let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
 
@@ -241,7 +241,7 @@ pub fn create_level_render(
         commands.entity(level_render_entity).add_child(id);
     }
 
-    for c in 0..columns {
+    for c in 0..cols {
         let r = 0;
         let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
         let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
@@ -278,8 +278,8 @@ pub fn update_level_render(
 ) {
     let (_, _, mut transform) = level_render_query.single_mut();
     let puzzle = &game_state.puzzle;
-    let (rows, columns) = (puzzle.rows(), puzzle.columns());
-    let (puzzle_width, puzzle_height) = (columns as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
+    let (rows, cols) = (puzzle.rows(), puzzle.cols());
+    let (puzzle_width, puzzle_height) = (cols as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
     transform.translation = Vec3::new(-puzzle_width / 2.0, 0.0, 0.0);
 }
 
@@ -289,7 +289,7 @@ pub fn update_placements_render(
     mut sprites_query: Query<(&mut Transform, &mut Visibility)>,
 ) {
     let level_render = level_render_query.single();
-    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.columns());
+    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.cols());
 
     for i in 0..100 {
         let id = level_render.placements[i];
@@ -298,7 +298,7 @@ pub fn update_placements_render(
                 let position = game_state.solution.placements[i].position;
                 *visibility = Visibility::Inherited;
 
-                let (c, r) = (position.column, position.row);
+                let (c, r) = (position.col, position.row);
                 let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
                 let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
 
@@ -324,7 +324,7 @@ pub fn update_buildings_required(
     >,
 ) {
     let validation_result = validate_solution(&game_state.solution, &game_state.puzzle);
-    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.columns());
+    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.cols());
 
     let underflow_color = Color::WHITE;
     let match_color = Color::rgb(0.4, 1.0, 0.3);
@@ -365,7 +365,7 @@ pub fn update_incorrect_placements(
     mut constraint_violations_query: Query<(&mut Text, &ConstraintViolationRender)>,
 ) {
     let validation_result = validate_solution(&game_state.solution, &game_state.puzzle);
-    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.columns());
+    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.cols());
 
     let underflow_color = Color::GRAY;
     let match_color = Color::rgb(0.2, 0.8, 0.2);
@@ -381,12 +381,12 @@ pub fn update_incorrect_placements(
 
             let matches_position = |x: &&PlacementViolation| {
                 let placement = &game_state.solution.placements[x.house_index];
-                placement.position == Position { row: r, column: c }
+                placement.position == Position { row: r, col: c }
             };
-            if validation_result
+            if let Some(_) = validation_result
                 .placement_violations
                 .iter()
-                .find(matches_position).is_some()
+                .find(matches_position)
             {
                 *visibility = Visibility::Inherited;
             };
@@ -396,7 +396,7 @@ pub fn update_incorrect_placements(
                 .find(|(_, x)| x.row == r && x.col == c)
                 .unwrap();
             let matches_position =
-                |x: &&ConstraintViolation| x.position == Position { row: r, column: c };
+                |x: &&ConstraintViolation| x.position == Position { row: r, col: c };
             if let Some(result) = validation_result
                 .constraint_violations
                 .iter()
@@ -416,7 +416,7 @@ pub fn update_cell_hints(
     game_state: Res<GameState>,
     mut cell_hint_query: Query<(&mut Visibility, &CellHint)>,
 ) {
-    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.columns());
+    let (rows, cols) = (game_state.puzzle.rows(), game_state.puzzle.cols());
     for r in 0..rows {
         for c in 0..cols {
             let (mut visibility, _) = cell_hint_query

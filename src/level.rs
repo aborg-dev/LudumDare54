@@ -41,20 +41,20 @@ impl Puzzle {
         self.field.len()
     }
 
-    pub fn columns(&self) -> usize {
+    pub fn cols(&self) -> usize {
         self.field[0].len()
     }
 
     pub fn is_valid(&self, row: i32, col: i32) -> bool {
-        row >= 0 && row < self.rows() as i32 && col >= 0 && col < self.columns() as i32
+        row >= 0 && row < self.rows() as i32 && col >= 0 && col < self.cols() as i32
     }
 }
 
 impl fmt::Display for Puzzle {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         for row in 0..self.rows() {
-            for column in 0..self.columns() {
-                write!(formatter, "{}", self.field[row][column].to_char())?
+            for col in 0..self.cols() {
+                write!(formatter, "{}", self.field[row][col].to_char())?
             }
             writeln!(formatter)?
         }
@@ -64,19 +64,19 @@ impl fmt::Display for Puzzle {
     }
 }
 
-pub fn field_from_size(rows: usize, columns: usize) -> Vec<Vec<CellType>> {
-    vec![vec![CellType::Grass; columns]; rows]
+pub fn field_from_size(rows: usize, cols: usize) -> Vec<Vec<CellType>> {
+    vec![vec![CellType::Grass; cols]; rows]
 }
 
 pub fn parse_field(s: Vec<&str>) -> Vec<Vec<CellType>> {
     let mut field = field_from_size(s.len(), s[0].len());
     for (row, line) in s.iter().enumerate() {
-        for (column, c) in line.as_bytes().iter().enumerate() {
+        for (col, c) in line.as_bytes().iter().enumerate() {
             // Skip cells with house objects.
             if [b'x'].contains(c) {
                 continue;
             }
-            field[row][column] = CellType::from_char(*c);
+            field[row][col] = CellType::from_char(*c);
         }
     }
     field
@@ -85,7 +85,7 @@ pub fn parse_field(s: Vec<&str>) -> Vec<Vec<CellType>> {
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Position {
     pub row: usize,
-    pub column: usize,
+    pub col: usize,
 }
 
 #[derive(Debug)]
@@ -158,9 +158,9 @@ impl fmt::Display for ValidationResult {
 pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResult {
     let mut placement_violations = Vec::new();
 
-    let mut has_house = vec![vec![false; puzzle.columns()]; puzzle.rows()];
+    let mut has_house = vec![vec![false; puzzle.cols()]; puzzle.rows()];
     for placement in &solution.placements {
-        has_house[placement.position.row][placement.position.column] = true;
+        has_house[placement.position.row][placement.position.col] = true;
     }
 
     // Check that each row and column is satisfied.
@@ -173,8 +173,8 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
             std::cmp::Ordering::Greater => LineStatus::Overflow,
         };
     }
-    let mut col_status = vec![LineStatus::Underflow; puzzle.columns()];
-    for col in 0..puzzle.columns() {
+    let mut col_status = vec![LineStatus::Underflow; puzzle.cols()];
+    for col in 0..puzzle.cols() {
         let mut house_count = 0;
         for row in 0..puzzle.rows() {
             house_count += has_house[row][col] as usize;
@@ -189,7 +189,7 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
     // Check that houses don't have other houses nearby.
     for (index, placement) in solution.placements.iter().enumerate() {
         let position = placement.position;
-        if count_adjacent_houses(position.row, position.column, &has_house, puzzle) > 0 {
+        if count_adjacent_houses(position.row, position.col, &has_house, puzzle) > 0 {
             placement_violations.push(PlacementViolation {
                 house_index: index,
                 violation: ViolationType::AdjacentHouse,
@@ -199,7 +199,7 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
 
     let mut constraint_violations = Vec::new();
     for row in 0..puzzle.rows() {
-        for col in 0..puzzle.columns() {
+        for col in 0..puzzle.cols() {
             match puzzle.field[row][col] {
                 CellType::Grass => {}
                 CellType::Tree => {}
@@ -211,7 +211,7 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
                         std::cmp::Ordering::Greater => ConstraintViolationType::Overflow,
                     };
                     constraint_violations.push(ConstraintViolation {
-                        position: Position { row, column: col },
+                        position: Position { row, col },
                         violation: t,
                     });
                 }
@@ -223,7 +223,7 @@ pub fn validate_solution(solution: &Solution, puzzle: &Puzzle) -> ValidationResu
                         std::cmp::Ordering::Greater => ConstraintViolationType::Overflow,
                     };
                     constraint_violations.push(ConstraintViolation {
-                        position: Position { row, column: col },
+                        position: Position { row, col },
                         violation: t,
                     });
                 }
@@ -248,7 +248,7 @@ pub fn count_diagnoal_houses(
     let mut count = 0;
     for drow in [-1, 1] {
         for dcol in [-1, 1] {
-            for d in 1..puzzle.rows().max(puzzle.columns()) {
+            for d in 1..puzzle.rows().max(puzzle.cols()) {
                 let nrow = row as i32 + drow * d as i32;
                 let ncol = col as i32 + dcol * d as i32;
                 if !puzzle.is_valid(nrow, ncol) {

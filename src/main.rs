@@ -22,7 +22,7 @@ pub struct GameState {
 impl GameState {
     pub fn new(puzzle: level::Puzzle, current_level: usize) -> Self {
         let rows = puzzle.rows();
-        let cols = puzzle.columns();
+        let cols = puzzle.cols();
         Self {
             puzzle,
             solution: Solution::default(),
@@ -114,7 +114,7 @@ fn switch_levels(
     let game_level = level::all_levels().swap_remove(game_state.current_level);
     game_state.puzzle = game_level.puzzle;
     game_state.solution = Solution::default();
-    game_state.hints = vec![vec![false; game_state.puzzle.columns()]; game_state.puzzle.rows()];
+    game_state.hints = vec![vec![false; game_state.puzzle.cols()]; game_state.puzzle.rows()];
     app_state.set(AppState::InGame);
 }
 

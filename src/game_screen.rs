@@ -259,8 +259,8 @@ pub fn item_number_constraints(
 pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>) {
     // Common style for all buttons on the screen
     let button_style = Style {
-        width: Val::Px(250.0),
-        height: Val::Px(65.0),
+        width: Val::Px(50.0),
+        height: Val::Px(50.0),
         margin: UiRect::all(Val::Px(20.0)),
         justify_content: JustifyContent::Center,
         align_items: AlignItems::Center,

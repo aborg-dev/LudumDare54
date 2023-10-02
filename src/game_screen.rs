@@ -188,6 +188,53 @@ pub fn item_cell(
     ));
 }
 
+pub fn item_number_constraints(
+    builder: &mut ChildBuilder,
+    puzzle: &Puzzle,
+    server: &Res<AssetServer>,
+) {
+    let (rows, cols) = puzzle.dims();
+
+    let text_style = TextStyle {
+        font: server.load("NotoSerif-SemiBold.ttf"),
+        font_size: 40.0,
+        color: Color::WHITE,
+        ..default()
+    };
+
+    for r in 0..rows {
+        let c = cols;
+        let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
+        let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
+
+        let text_bundle = Text2dBundle {
+            text: Text::from_section(puzzle.row_count[r].to_string(), text_style.clone())
+                .with_alignment(TextAlignment::Center),
+            transform: Transform::from_xyz(
+                ix + 0.35 * CELL_SIZE,
+                iy + 0.05 * CELL_SIZE,
+                AXIS_LAYER,
+            ),
+            ..default()
+        };
+        builder.spawn((text_bundle, RowBuildingsRequired { row: r }));
+    }
+
+    for c in 0..cols {
+        let r = 0;
+        let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
+        let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
+
+        let text_bundle = Text2dBundle {
+            text: Text::from_section(puzzle.col_count[c].to_string(), text_style.clone())
+                .with_alignment(TextAlignment::Center),
+            transform: Transform::from_xyz(ix + 0.15 * CELL_SIZE, iy + 0.3 * CELL_SIZE, AXIS_LAYER),
+            ..default()
+        };
+        builder.spawn((text_bundle, ColBuildingsRequired { col: c }));
+    }
+}
+
 pub fn create_game_screen(
     mut commands: Commands,
     game_state: Res<GameState>,
@@ -236,50 +283,11 @@ pub fn create_game_screen(
         game_screen_root.placements.push(id);
     }
 
-    let text_style = TextStyle {
-        font: server.load("NotoSerif-SemiBold.ttf"),
-        font_size: 40.0,
-        color: Color::WHITE,
-        ..default()
-    };
-
-    for r in 0..rows {
-        let c = cols;
-        let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
-        let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
-
-        let text_bundle = Text2dBundle {
-            text: Text::from_section(puzzle.row_count[r].to_string(), text_style.clone())
-                .with_alignment(TextAlignment::Center),
-            transform: Transform::from_xyz(
-                ix + 0.35 * CELL_SIZE,
-                iy + 0.05 * CELL_SIZE,
-                AXIS_LAYER,
-            ),
-            ..default()
-        };
-        let id = commands
-            .spawn((text_bundle, RowBuildingsRequired { row: r }))
-            .id();
-        commands.entity(game_screen_entity).add_child(id);
-    }
-
-    for c in 0..cols {
-        let r = 0;
-        let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
-        let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
-
-        let text_bundle = Text2dBundle {
-            text: Text::from_section(puzzle.col_count[c].to_string(), text_style.clone())
-                .with_alignment(TextAlignment::Center),
-            transform: Transform::from_xyz(ix + 0.15 * CELL_SIZE, iy + 0.3 * CELL_SIZE, AXIS_LAYER),
-            ..default()
-        };
-        let id = commands
-            .spawn((text_bundle, ColBuildingsRequired { col: c }))
-            .id();
-        commands.entity(game_screen_entity).add_child(id);
-    }
+    commands
+        .entity(game_screen_entity)
+        .with_children(|builder| {
+            item_number_constraints(builder, &puzzle, &server);
+        });
 
     commands.entity(game_screen_entity).insert(game_screen_root);
 }

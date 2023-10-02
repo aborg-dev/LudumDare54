@@ -107,7 +107,7 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
                         ButtonBundle {
                             style: button_style.clone(),
                             background_color: NORMAL_BUTTON.into(),
-                            image: UiImage::new(server.load("button_play.png")),
+                            image: UiImage::new(server.load("UI/button_play.png")),
                             ..default()
                         },
                         MenuButtonAction::Play,
@@ -116,7 +116,7 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
                         ButtonBundle {
                             style: button_style.clone(),
                             background_color: NORMAL_BUTTON.into(),
-                            image: UiImage::new(server.load("button_levels.png")),
+                            image: UiImage::new(server.load("UI/button_levels.png")),
                             ..default()
                         },
                         MenuButtonAction::Levels,
@@ -125,7 +125,7 @@ fn create_main_menu_screen(mut commands: Commands, server: Res<AssetServer>) {
                         ButtonBundle {
                             style: button_style.clone(),
                             background_color: NORMAL_BUTTON.into(),
-                            image: UiImage::new(server.load("button_quit.png")),
+                            image: UiImage::new(server.load("UI/button_quit.png")),
                             ..default()
                         },
                         MenuButtonAction::Quit,

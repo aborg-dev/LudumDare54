@@ -300,7 +300,7 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
                                 ..default()
                             },
                             background_color: NORMAL_BUTTON.into(),
-                            image: UiImage::new(server.load("button_back.png")),
+                            image: UiImage::new(server.load("UI/button_back.png")),
                             ..default()
                         },
                         GameScreenButtonAction::Back,
@@ -325,7 +325,7 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
                                 ..default()
                             },
                             background_color: NORMAL_BUTTON.into(),
-                            image: UiImage::new(server.load("button_snd_on.png")),
+                            image: UiImage::new(server.load("UI/button_snd_on.png")),
                             ..default()
                         },
                         GameScreenButtonAction::ToggleSound,
@@ -340,7 +340,7 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
                         margin: UiRect::all(Val::Px(20.0)),
                         ..default()
                     },
-                    image: UiImage::new(server.load("button_next_level.png")),
+                    image: UiImage::new(server.load("UI/button_next_level.png")),
                     visibility: Visibility::Hidden,
                     ..Default::default()
                 },

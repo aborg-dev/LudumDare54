@@ -593,13 +593,30 @@ pub fn update_cell_hints(
 }
 
 fn detect_complete_level(
+    mut commands: Commands,
     game_state: Res<GameState>,
     mut complete_banner: Query<&mut Visibility, With<CompleteBanner>>,
+    server: Res<AssetServer>,
 ) {
     let validation_result = validate_solution(&game_state.solution, &game_state.puzzle);
     if validation_result.complete {
         let mut visibility = complete_banner.get_single_mut().unwrap();
-        *visibility = Visibility::Visible;
+        if matches!(*visibility, Visibility::Hidden) {
+            *visibility = Visibility::Visible;
+            commands.spawn((
+                AudioBundle {
+                    source: server.load("level_success.wav"),
+                    settings: PlaybackSettings {
+                        mode: PlaybackMode::Despawn,
+                        volume: Volume::new_absolute(0.0),
+                        speed: 1.2,
+                        ..default()
+                    },
+                    ..default()
+                },
+                VolumeSettings { volume: 0.12 },
+            ));
+        }
     }
 }
 

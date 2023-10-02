@@ -9,15 +9,16 @@ use rand::prelude::*;
 pub const CELL_SIZE: f32 = 150.0;
 
 pub const GRASS_LAYER: f32 = 0.0;
-pub const CELL_LAYER: f32 = 100.0;
-pub const CROSS_LAYER: f32 = 200.0;
-pub const TEXT_LAYER: f32 = 300.0;
-pub const DOT_LAYER: f32 = 400.0;
+pub const MARKER_LAYER: f32 = 100.0;
+pub const CELL_LAYER: f32 = 200.0;
+pub const CROSS_LAYER: f32 = 300.0;
+pub const TEXT_LAYER: f32 = 400.0;
 pub const AXIS_LAYER: f32 = 500.0;
 
 #[derive(Component, Default)]
 pub struct LevelRender {
     placements: Vec<Entity>,
+    random_number: Vec<Vec<u32>>,
 }
 
 #[derive(Component)]
@@ -73,6 +74,13 @@ pub fn create_level_render(
     let puzzle_height = rows as f32 * CELL_SIZE;
 
     let mut rng = StdRng::seed_from_u64(game_state.current_level as u64);
+    for r in 0..rows {
+        level_render.random_number.push(vec![]);
+        for c in 0..columns {
+            let id: u32 = rng.gen();
+            level_render.random_number[r].push(id);
+        }
+    }
 
     assert_eq!(rows, columns);
     for r in 0..rows {
@@ -84,12 +92,11 @@ pub fn create_level_render(
             let ix = (c as f32 + r as f32) * CELL_SIZE * 0.5;
             let iy = (c as f32 - r as f32) * CELL_SIZE * 0.25;
 
-            let id: u32 = rng.gen();
-            let id = id % 3 + 1;
+            let rid = level_render.random_number[r][c] % 3 + 1;
             let grass_texture = if (r + c) % 2 == 0 {
-                server.load(format!("grass_iso_dark_{id}.png"))
+                server.load(format!("grass_iso_dark_{rid}.png"))
             } else {
-                server.load(format!("grass_iso_light_{id}.png"))
+                server.load(format!("grass_iso_light_{rid}.png"))
             };
             let id = commands
                 .spawn(SpriteBundle {
@@ -162,24 +169,20 @@ pub fn create_level_render(
                 .id();
             commands.entity(level_render_entity).add_child(id);
 
-            let dot_scale = 1.0 / 8.0;
             let id = commands
                 .spawn((
                     SpriteBundle {
                         sprite: Sprite {
-                            custom_size: Some(Vec2::new(
-                                CELL_SIZE * dot_scale,
-                                CELL_SIZE * dot_scale,
-                            )),
+                            custom_size: Some(Vec2::new(CELL_SIZE, CELL_SIZE)),
                             anchor: Anchor::CenterLeft,
                             ..Default::default()
                         },
                         transform: Transform::from_xyz(
-                            ix + CELL_SIZE * (1.0 - dot_scale) / 2.0,
+                            ix,
                             iy,
-                            z + DOT_LAYER,
+                            z + MARKER_LAYER,
                         ),
-                        texture: server.load("dot.png"),
+                        texture: server.load(format!("marker_iso_{rid}.png")),
                         visibility: Visibility::Hidden,
                         ..Default::default()
                     },

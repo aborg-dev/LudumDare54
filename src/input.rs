@@ -147,7 +147,7 @@ fn mouse_input(
                             settings: PlaybackSettings {
                                 mode: PlaybackMode::Despawn,
                                 volume: Volume::new_absolute(0.0),
-                                speed: 1.2,
+                                speed: 0.9,
                                 ..default()
                             },
                             ..default()

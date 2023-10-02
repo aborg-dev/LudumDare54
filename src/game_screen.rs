@@ -57,7 +57,7 @@ pub const AXIS_LAYER: f32 = 500.0;
 // Update if the size of the field grows beyond 10x10.
 pub const MAX_HOUSE_COUNT: usize = 100;
 
-const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
+const NORMAL_BUTTON: Color = Color::WHITE;
 
 #[derive(Component, Default)]
 pub struct GameScreenRoot {
@@ -286,6 +286,7 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
                     ButtonBundle {
                         style: button_style.clone(),
                         background_color: NORMAL_BUTTON.into(),
+                        image: UiImage::new(server.load("button_back.png")),
                         ..default()
                     },
                     GameScreenButtonAction::Back,

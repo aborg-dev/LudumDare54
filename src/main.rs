@@ -71,6 +71,7 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
             "cross_iso.png",
             "button_play.png",
             "button_levels.png",
+            "button_back.png",
             "empty.png",
             "forest_iso.png",
             "house_iso.png",

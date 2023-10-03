@@ -124,8 +124,7 @@ fn switch_levels(mut game_state: ResMut<GameState>, mut app_state: ResMut<NextSt
 }
 
 
-#[wasm_bindgen]
-pub fn start() {
+pub fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {

@@ -74,9 +74,8 @@ pub const AXIS_LAYER: f32 = 500.0;
 pub const MAX_HOUSE_COUNT: usize = 100;
 
 const NORMAL_BUTTON: Color = Color::WHITE;
-const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
-// const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
-const PRESSED_BUTTON: Color = HOVERED_BUTTON;
+const HOVERED_BUTTON: Color = Color::rgb(0.8, 0.8, 0.8);
+const PRESSED_BUTTON: Color = Color::rgb(0.7, 0.7, 0.7);
 
 #[derive(Component, Default)]
 pub struct GameScreenRoot {
@@ -340,7 +339,7 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
                                 ..default()
                             },
                             background_color: NORMAL_BUTTON.into(),
-                            image: UiImage::new(server.load("UI/button_snd_on.png")),
+                            image: UiImage::new(server.load("UI/button_snd_low.png")),
                             ..default()
                         },
                         GameScreenButtonAction::ToggleSound,
@@ -428,6 +427,19 @@ pub fn create_game_screen(
         });
 
     commands.entity(game_screen_entity).insert(game_screen_root);
+
+    // let ambient_id = commands.spawn((
+    //     AudioBundle {
+    //         source: server.load("ambient.mp3"),
+    //         settings: PlaybackSettings {
+    //             mode: PlaybackMode::Loop,
+    //             ..default()
+    //         },
+    //         ..default()
+    //     },
+    //     VolumeSettings { volume: 0.1 },
+    // )).id();
+    // commands.entity(game_screen_entity).add_child(ambient_id);
 }
 
 pub fn destroy_game_screen(
@@ -622,7 +634,7 @@ fn detect_complete_level(
                     },
                     ..default()
                 },
-                VolumeSettings { volume: 0.12 },
+                VolumeSettings { volume: 0.4 },
             ));
         }
     }
@@ -745,14 +757,15 @@ fn handle_mouse_input(
 // This system handles changing all buttons color based on mouse interaction
 fn button_system(
     mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor, &GameScreenButtonAction),
+        (&Interaction, &mut BackgroundColor, &GameScreenButtonAction, &mut UiImage),
         (Changed<Interaction>, With<Button>),
     >,
     mut game_state: ResMut<GameState>,
     mut app_state: ResMut<NextState<AppState>>,
     mut global_volume_settings: ResMut<GlobalVolumeSettings>,
+    server: Res<AssetServer>,
 ) {
-    for (interaction, mut color, action) in &mut interaction_query {
+    for (interaction, mut color, action, mut ui_image) in &mut interaction_query {
         *color = match *interaction {
             Interaction::Pressed => PRESSED_BUTTON.into(),
             Interaction::Hovered => HOVERED_BUTTON.into(),
@@ -766,9 +779,14 @@ fn button_system(
                 }
                 GameScreenButtonAction::ToggleSound => {
                     if global_volume_settings.volume == 0.0 {
+                        global_volume_settings.volume = 0.5;
+                        ui_image.texture = server.load("UI/button_snd_low.png");
+                    } else if global_volume_settings.volume == 0.5 {
                         global_volume_settings.volume = 1.0;
-                    } else {
+                        ui_image.texture = server.load("UI/button_snd_on.png");
+                    } else if global_volume_settings.volume == 1.0 {
                         global_volume_settings.volume = 0.0;
+                        ui_image.texture = server.load("UI/button_snd_off.png");
                     }
                 }
                 GameScreenButtonAction::Complete => {

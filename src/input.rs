@@ -27,12 +27,4 @@ fn keyboard_input(
     if keys.just_pressed(KeyCode::L) {
         app_state.set(AppState::SelectLevelScreen);
     }
-
-    if keys.just_pressed(KeyCode::M) {
-        if global_volume_settings.volume == 0.0 {
-            global_volume_settings.volume = 1.0;
-        } else {
-            global_volume_settings.volume = 0.0;
-        }
-    }
 }

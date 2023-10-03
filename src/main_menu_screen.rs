@@ -17,8 +17,8 @@ impl<S: States + Copy> Plugin for MainMenuScreenPlugin<S> {
 }
 
 const NORMAL_BUTTON: Color = Color::WHITE;
-const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
-const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
+const HOVERED_BUTTON: Color = Color::rgb(0.8, 0.8, 0.8);
+const PRESSED_BUTTON: Color = Color::rgb(0.7, 0.7, 0.7);
 const TEXT_COLOR: Color = Color::rgb(239.0 / 256.0, 167.0 / 256.0, 115.0 / 256.0);
 
 const RULES: &str = "

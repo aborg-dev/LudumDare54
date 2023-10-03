@@ -100,19 +100,19 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
         .to_vec(),
     });
 
-    commands.spawn((
-        AudioBundle {
-            source: server.load("ambient.mp3"),
-            settings: PlaybackSettings {
-                mode: PlaybackMode::Loop,
-                ..default()
-            },
-            ..default()
-        },
-        VolumeSettings { volume: 0.1 },
-    ));
+    // commands.spawn((
+    //     AudioBundle {
+    //         source: server.load("ambient.mp3"),
+    //         settings: PlaybackSettings {
+    //             mode: PlaybackMode::Loop,
+    //             ..default()
+    //         },
+    //         ..default()
+    //     },
+    //     VolumeSettings { volume: 0.1 },
+    // ));
 
-    commands.insert_resource(GlobalVolumeSettings { volume: 0.0 });
+    commands.insert_resource(GlobalVolumeSettings { volume: 0.5 });
 }
 
 fn update_sounds(

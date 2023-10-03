@@ -1,3 +1,5 @@
+use wasm_bindgen::prelude::*;
+
 use bevy::audio::PlaybackMode;
 use bevy::prelude::*;
 use bevy::window::{close_on_esc, WindowMode};
@@ -121,7 +123,9 @@ fn switch_levels(mut game_state: ResMut<GameState>, mut app_state: ResMut<NextSt
     app_state.set(AppState::InGame);
 }
 
-fn main() {
+
+#[wasm_bindgen]
+pub fn start() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {

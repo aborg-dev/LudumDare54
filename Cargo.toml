@@ -9,8 +9,37 @@ edition = "2021"
 path = "src/main.rs"
 crate-type = ["cdylib", "rlib"]
 
+[features]
+webgl2 = ["bevy/webgl2"]
+
 [dependencies]
-bevy = { version = "0.11.3", features = ["wav", "mp3"] }
+bevy = { version = "0.11.3", features = [
+    "animation",
+    "bevy_asset",
+    "bevy_audio",
+    "bevy_gilrs",
+    "bevy_scene",
+    "bevy_winit",
+    "bevy_core_pipeline",
+    "bevy_pbr",
+    "bevy_gltf",
+    "bevy_render",
+    "bevy_sprite",
+    "bevy_text",
+    "bevy_ui",
+    "png",
+    "hdr",
+    "ktx2",
+    "zstd",
+    "vorbis",
+    "x11",
+    "bevy_gizmos",
+    "android_shared_stdcxx",
+    "tonemapping_luts",
+    "default_font",
+		"wav",
+		"mp3"
+] }
 rand = "0.8.5"
 wasm-bindgen = "0.2.87"
 

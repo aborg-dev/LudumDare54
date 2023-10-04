@@ -1,9 +1,9 @@
-use crate::SKY_COLOR;
 use crate::level::*;
 use crate::AppState;
 use crate::GameState;
 use crate::GlobalVolumeSettings;
 use crate::VolumeSettings;
+use crate::SKY_COLOR;
 use bevy::audio::PlaybackMode;
 use bevy::audio::Volume;
 use bevy::math::Vec2;
@@ -642,6 +642,7 @@ fn detect_complete_level(
 
 fn handle_mouse_input(
     mouse: Res<Input<MouseButton>>,
+    touches_input: Res<Touches>,
     window_query: Query<&Window, With<PrimaryWindow>>,
     game_screen_query: Query<&Transform, With<GameScreenRoot>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
@@ -655,6 +656,7 @@ fn handle_mouse_input(
     let (rows, cols) = game_state.puzzle.dims();
 
     let left_just_pressed = mouse.just_pressed(MouseButton::Left);
+    let touch_just_pressed = touches_input.any_just_pressed();
     let right_just_pressed = mouse.just_pressed(MouseButton::Right);
 
     let isometric_to_orthographic = |pi: Vec2| {
@@ -665,6 +667,7 @@ fn handle_mouse_input(
 
     if let Some(p) = window
         .cursor_position()
+        .or_else(|| touches_input.first_pressed_position())
         .and_then(|cursor| camera.viewport_to_world_2d(camera_global_transform, cursor))
         .map(isometric_to_orthographic)
     {
@@ -678,7 +681,7 @@ fn handle_mouse_input(
             let r = position.row;
             let c = position.col;
 
-            if left_just_pressed
+            if (left_just_pressed || touch_just_pressed)
                 && game_state.puzzle.field[r][c] == CellType::Grass
                 && game_state
                     .solution
@@ -702,10 +705,8 @@ fn handle_mouse_input(
                     },
                     VolumeSettings { volume: 0.6 },
                 ));
-            }
-
-            // Remove placements at this position.
-            if right_just_pressed {
+            } else if right_just_pressed || touch_just_pressed {
+                // Remove placements at this position.
                 if let Some(index) = game_state
                     .solution
                     .placements
@@ -757,7 +758,12 @@ fn handle_mouse_input(
 // This system handles changing all buttons color based on mouse interaction
 fn button_system(
     mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor, &GameScreenButtonAction, &mut UiImage),
+        (
+            &Interaction,
+            &mut BackgroundColor,
+            &GameScreenButtonAction,
+            &mut UiImage,
+        ),
         (Changed<Interaction>, With<Button>),
     >,
     mut game_state: ResMut<GameState>,

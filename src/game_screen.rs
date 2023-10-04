@@ -367,6 +367,9 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
 #[derive(Component)]
 pub struct CompleteBanner;
 
+#[derive(Component)]
+pub struct InGameBackground;
+
 pub fn create_game_screen(
     mut commands: Commands,
     game_state: Res<GameState>,
@@ -375,6 +378,14 @@ pub fn create_game_screen(
     let game_screen_entity = commands.spawn(SpatialBundle::default()).id();
     // This component is added to the entity in the end of this function.
     let mut game_screen_root = GameScreenRoot::default();
+
+    commands.spawn((SpriteBundle {
+        sprite: Sprite {
+            ..Default::default()
+        },
+        texture: server.load("full.png"),
+        ..Default::default()
+    }, InGameBackground));
 
     create_hud(&mut commands, &game_state.name, &server);
 
@@ -427,25 +438,13 @@ pub fn create_game_screen(
         });
 
     commands.entity(game_screen_entity).insert(game_screen_root);
-
-    // let ambient_id = commands.spawn((
-    //     AudioBundle {
-    //         source: server.load("ambient.mp3"),
-    //         settings: PlaybackSettings {
-    //             mode: PlaybackMode::Loop,
-    //             ..default()
-    //         },
-    //         ..default()
-    //     },
-    //     VolumeSettings { volume: 0.1 },
-    // )).id();
-    // commands.entity(game_screen_entity).add_child(ambient_id);
 }
 
 pub fn destroy_game_screen(
     mut commands: Commands,
     mut game_screen_query: Query<(Entity, &mut GameScreenRoot)>,
     query: Query<Entity, With<OnGameScreen>>,
+    background_query: Query<Entity, With<InGameBackground>>,
 ) {
     let (game_screen_entity, _) = game_screen_query.single_mut();
     let mut entity_commands = commands.entity(game_screen_entity);
@@ -456,17 +455,26 @@ pub fn destroy_game_screen(
     for entity in query.iter() {
         commands.entity(entity).despawn_recursive();
     }
+
+    commands.entity(background_query.single()).despawn();
 }
 
 pub fn update_game_screen(
     game_state: Res<GameState>,
     mut game_screen_query: Query<(Entity, &GameScreenRoot, &mut Transform)>,
+    mut background_query: Query<&mut Sprite, With<InGameBackground>>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
     let (_, _, mut transform) = game_screen_query.single_mut();
     let puzzle = &game_state.puzzle;
     let (rows, cols) = puzzle.dims();
     let (puzzle_width, _puzzle_height) = (cols as f32 * CELL_SIZE, rows as f32 * CELL_SIZE);
     transform.translation = Vec3::new(-puzzle_width / 2.0, 0.0, 0.0);
+
+    let window = window_query.single();
+
+    let mut sprite = background_query.single_mut();
+    sprite.custom_size = Some(Vec2::new(window.width(), window.height()));
 }
 
 pub fn update_placements_render(

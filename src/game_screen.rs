@@ -272,7 +272,20 @@ pub fn item_number_constraints(
     }
 }
 
-pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>) {
+pub fn create_hud(
+    commands: &mut Commands,
+    name: &str,
+    server: &Res<AssetServer>,
+    global_volume_settings: &Res<GlobalVolumeSettings>,
+) {
+    let volume_texture = if global_volume_settings.volume == 0.0 {
+        server.load("UI/button_snd_off.png")
+    } else if global_volume_settings.volume == 0.5 {
+        server.load("UI/button_snd_low.png")
+    } else {
+        server.load("UI/button_snd_on.png")
+    };
+
     commands
         .spawn((
             NodeBundle {
@@ -339,7 +352,7 @@ pub fn create_hud(commands: &mut Commands, name: &str, server: &Res<AssetServer>
                                 ..default()
                             },
                             background_color: NORMAL_BUTTON.into(),
-                            image: UiImage::new(server.load("UI/button_snd_low.png")),
+                            image: UiImage::new(volume_texture),
                             ..default()
                         },
                         GameScreenButtonAction::ToggleSound,
@@ -374,6 +387,7 @@ pub fn create_game_screen(
     mut commands: Commands,
     game_state: Res<GameState>,
     server: Res<AssetServer>,
+    global_volume_settings: Res<GlobalVolumeSettings>,
 ) {
     let game_screen_entity = commands.spawn(SpatialBundle::default()).id();
     // This component is added to the entity in the end of this function.
@@ -387,7 +401,7 @@ pub fn create_game_screen(
         ..Default::default()
     }, InGameBackground));
 
-    create_hud(&mut commands, &game_state.name, &server);
+    create_hud(&mut commands, &game_state.name, &server, &global_volume_settings);
 
     let puzzle = &game_state.puzzle;
     let (rows, cols) = puzzle.dims();

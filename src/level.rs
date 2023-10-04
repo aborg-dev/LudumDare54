@@ -597,8 +597,8 @@ pub fn village() -> GameLevel {
                "......",
                "TTTTTT",
             ]),
-            row_count: vec![3, 0, 3, 2, 3, 0],
-            col_count: vec![2, 2, 2, 2, 1, 2],
+            row_count: vec![2, 1, 3, 1, 3, 0],
+            col_count: vec![2, 1, 2, 2, 1, 2],
         },
     }
 }

@@ -677,8 +677,8 @@ fn handle_mouse_input(
     let window = window_query.single();
     let (rows, cols) = game_state.puzzle.dims();
 
-    let left_just_pressed = mouse.just_pressed(MouseButton::Left);
-    let touch_just_pressed = touches_input.any_just_pressed();
+    let left_just_pressed =
+        mouse.just_pressed(MouseButton::Left) || touches_input.any_just_pressed();
     let right_just_pressed = mouse.just_pressed(MouseButton::Right);
 
     let isometric_to_orthographic = |pi: Vec2| {
@@ -703,7 +703,7 @@ fn handle_mouse_input(
             let r = position.row;
             let c = position.col;
 
-            if (left_just_pressed || touch_just_pressed)
+            if left_just_pressed
                 && game_state.puzzle.field[r][c] == CellType::Grass
                 && game_state
                     .solution
@@ -727,7 +727,7 @@ fn handle_mouse_input(
                     },
                     VolumeSettings { volume: 0.6 },
                 ));
-            } else if right_just_pressed || touch_just_pressed {
+            } else if right_just_pressed || left_just_pressed {
                 // Remove placements at this position.
                 if let Some(index) = game_state
                     .solution
